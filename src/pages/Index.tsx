@@ -35,6 +35,7 @@ const Index = () => {
   const city = useLocation((s) => s.city);
   const products = useCatalog((s) => s.products);
   const categories = useCatalog((s) => s.categories);
+  const catalogLoaded = useCatalog((s) => s.loaded);
 
   const { user, tg } = useTelegram();
   const { isAdmin } = useAuth();
@@ -172,34 +173,62 @@ const Index = () => {
       />
 
       <main className="pb-32">
-        {featured && <Hero product={featured} />}
-
-        <CategoryPills categories={categories} active={category} onChange={setCategory} />
-
-        <section className="px-5">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-display font-bold text-xl">
-              {category === "all" ? t("section.allProducts") : t("section.category")}
-            </h2>
-            <span className="text-xs text-muted-foreground">
-              {filtered.length} {t("section.count")}
-            </span>
-          </div>
-
-          {filtered.length === 0 ? (
-            <div className="py-12 text-center text-muted-foreground">
-              <div className="text-5xl font-display font-bold mb-2">404</div>
-              {t("section.empty")}
+        {!catalogLoaded ? (
+          <>
+            <div className="px-5 pt-4">
+              <div className="h-44 rounded-3xl bg-muted animate-pulse" />
             </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-3">
-              {filtered.map((p) => (
-                <ProductCard key={p.id} product={p} onOpen={setOpenProduct} />
+            <div className="flex gap-2 overflow-hidden pb-3 pl-5 pr-5 pt-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-10 w-24 rounded-full bg-muted animate-pulse shrink-0" />
               ))}
             </div>
-          )}
+            <section className="px-5">
+              <div className="grid grid-cols-2 gap-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="bg-card rounded-3xl overflow-hidden shadow-card">
+                    <div className="aspect-square bg-muted animate-pulse" />
+                    <div className="p-3 space-y-2">
+                      <div className="h-3 w-3/4 bg-muted animate-pulse rounded" />
+                      <div className="h-3 w-1/2 bg-muted animate-pulse rounded" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </>
+        ) : (
+          <>
+            {featured && <Hero product={featured} />}
 
-        </section>
+            <CategoryPills categories={categories} active={category} onChange={setCategory} />
+
+            <section className="px-5">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="font-display font-bold text-xl">
+                  {category === "all" ? t("section.allProducts") : t("section.category")}
+                </h2>
+                <span className="text-xs text-muted-foreground">
+                  {filtered.length} {t("section.count")}
+                </span>
+              </div>
+
+              {filtered.length === 0 ? (
+                <div className="py-12 text-center text-muted-foreground">
+                  <div className="text-5xl font-display font-bold mb-2">404</div>
+                  {t("section.empty")}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  {filtered.map((p) => (
+                    <ProductCard key={p.id} product={p} onOpen={setOpenProduct} />
+                  ))}
+                </div>
+              )}
+
+            </section>
+          </>
+        )}
       </main>
 
       <StickyCartBar onClick={() => setCartOpen(true)} />
