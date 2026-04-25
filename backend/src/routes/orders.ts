@@ -91,7 +91,7 @@ export async function orderRoutes(app: FastifyInstance) {
       }
       const used = await prisma.promoRedemption.findUnique({
         where: {
-          promo_redemptions_promo_user_key: { promoId: promo.id, userTgId: user.tgId },
+          promoId_userTgId: { promoId: promo.id, userTgId: user.tgId },
         },
       }).catch(() => null);
       if (used) return reply.code(409).send({ error: "promo_already_used" });
