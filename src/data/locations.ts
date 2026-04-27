@@ -1,4 +1,4 @@
-export type CountrySlug = "thailand" | "vietnam" | "bali" | "kl";
+export type CountrySlug = "thailand" | "vietnam" | "bali" | "kl" | "uae";
 
 export interface District {
   slug: string;
@@ -152,6 +152,37 @@ export const COUNTRIES: Country[] = [
           { slug: "kl-montkiara", name: { ru: "Mont Kiara", en: "Mont Kiara" } },
           { slug: "kl-ttdi", name: { ru: "TTDI", en: "TTDI" } },
           { slug: "kl-damansara", name: { ru: "Damansara", en: "Damansara" } },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "uae",
+    flag: "🇦🇪",
+    name: { ru: "ОАЭ", en: "UAE" },
+    shortName: { ru: "ОАЭ", en: "UAE" },
+    cities: [
+      {
+        slug: "dubai",
+        name: { ru: "Дубай", en: "Dubai" },
+        districts: [
+          { slug: "dxb-marina", name: { ru: "Dubai Marina", en: "Dubai Marina" } },
+          { slug: "dxb-jbr", name: { ru: "JBR", en: "JBR" } },
+          { slug: "dxb-downtown", name: { ru: "Downtown", en: "Downtown" } },
+          { slug: "dxb-businessbay", name: { ru: "Business Bay", en: "Business Bay" } },
+          { slug: "dxb-palm", name: { ru: "Palm Jumeirah", en: "Palm Jumeirah" } },
+          { slug: "dxb-jvc", name: { ru: "JVC", en: "JVC" } },
+          { slug: "dxb-deira", name: { ru: "Deira", en: "Deira" } },
+        ],
+      },
+      {
+        slug: "abudhabi",
+        name: { ru: "Абу-Даби", en: "Abu Dhabi" },
+        districts: [
+          { slug: "auh-corniche", name: { ru: "Корниш", en: "Corniche" } },
+          { slug: "auh-yas", name: { ru: "Яс Айленд", en: "Yas Island" } },
+          { slug: "auh-saadiyat", name: { ru: "Саадият", en: "Saadiyat" } },
+          { slug: "auh-reem", name: { ru: "Аль Рим", en: "Al Reem" } },
         ],
       },
     ],
