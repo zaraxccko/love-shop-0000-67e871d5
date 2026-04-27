@@ -9,7 +9,6 @@ import { loc } from "@/lib/loc";
 import { COUNTRIES, findDistrict } from "@/data/locations";
 import { useLocationToggles } from "@/store/locationToggles";
 import {
-  getDefaultPromoRule,
   resolvePromoRule,
   useLocationPromos,
   type LocationPromoRule,
