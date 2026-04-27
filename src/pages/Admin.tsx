@@ -1459,8 +1459,13 @@ export default AdminPage;
 interface LocationsAdminProps { onBack: () => void }
 
 const LocationsAdmin = ({ onBack }: LocationsAdminProps) => {
-  const isDisabled = useLocationToggles((s) => s.isDisabled);
-  const toggle = useLocationToggles((s) => s.toggle);
+  const disabled = useLocationToggles((s) => s.disabled);
+  const setDisabled = useLocationToggles((s) => s.setDisabled);
+  const promoRules = useLocationPromos((s) => s.rules);
+  const setPromoRule = useLocationPromos((s) => s.setRule);
+  const isDisabled = (slug: string) => disabled.includes(slug);
+  const updatePromo = (slug: string, patch: Partial<LocationPromoRule>) =>
+    setPromoRule(slug, { ...resolvePromoRule(promoRules, slug), ...patch });
 
   return (
     <div className="min-h-screen max-w-md mx-auto bg-background px-5 pt-6 pb-10">
@@ -1478,6 +1483,13 @@ const LocationsAdmin = ({ onBack }: LocationsAdminProps) => {
       <p className="text-muted-foreground text-sm mb-4">
         Отключённые локации показываются в каталоге тусклыми и недоступны для выбора.
       </p>
+
+      <div className="bg-card rounded-2xl shadow-card p-4 mb-4 space-y-2">
+        <div className="font-bold text-sm">Акция по умолчанию</div>
+        <div className="text-xs text-muted-foreground">
+          Для всех локаций: 5g → +5g. Для ОАЭ: 5g → +2g, 10g → +5g.
+        </div>
+      </div>
 
       <div className="space-y-4">
         {COUNTRIES.map((country) => {
