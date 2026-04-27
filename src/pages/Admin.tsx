@@ -1466,6 +1466,33 @@ const LocationsAdmin = ({ onBack }: LocationsAdminProps) => {
   const isDisabled = (slug: string) => disabled.includes(slug);
   const updatePromo = (slug: string, patch: Partial<LocationPromoRule>) =>
     setPromoRule(slug, { ...resolvePromoRule(promoRules, slug), ...patch });
+  const promoInputs = (slug: string) => {
+    const promo = resolvePromoRule(promoRules, slug);
+    return (
+      <div className="grid grid-cols-2 gap-2 mt-3">
+        <label className="text-[11px] text-muted-foreground">
+          5g → подарок
+          <Input
+            type="number"
+            min={0}
+            value={promo.giftFor5}
+            onChange={(e) => updatePromo(slug, { giftFor5: Number(e.target.value) })}
+            className="mt-1 h-9 rounded-xl bg-background"
+          />
+        </label>
+        <label className="text-[11px] text-muted-foreground">
+          10g → подарок
+          <Input
+            type="number"
+            min={0}
+            value={promo.giftFor10 ?? promo.giftFor5}
+            onChange={(e) => updatePromo(slug, { giftFor10: Number(e.target.value) })}
+            className="mt-1 h-9 rounded-xl bg-background"
+          />
+        </label>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen max-w-md mx-auto bg-background px-5 pt-6 pb-10">
@@ -1508,21 +1535,25 @@ const LocationsAdmin = ({ onBack }: LocationsAdminProps) => {
                 </div>
                 <Switch
                   checked={!countryOff}
-                  onCheckedChange={() => toggle(country.slug)}
+                  onCheckedChange={(checked) => setDisabled(country.slug, !checked)}
                 />
               </div>
+              <div className="px-4 pb-4">{promoInputs(country.slug)}</div>
 
-              {!countryOff && country.cities.length > 1 && (
+              {!countryOff && country.cities.length > 0 && (
                 <div className="border-t divide-y">
                   {country.cities.map((city) => {
                     const cityOff = isDisabled(city.slug);
                     return (
-                      <div key={city.slug} className="flex items-center justify-between px-4 py-3">
-                        <div className="text-sm">{city.name.ru}</div>
-                        <Switch
-                          checked={!cityOff}
-                          onCheckedChange={() => toggle(city.slug)}
-                        />
+                      <div key={city.slug} className="px-4 py-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="text-sm">{city.name.ru}</div>
+                          <Switch
+                            checked={!cityOff}
+                            onCheckedChange={(checked) => setDisabled(city.slug, !checked)}
+                          />
+                        </div>
+                        {promoInputs(city.slug)}
                       </div>
                     );
                   })}
