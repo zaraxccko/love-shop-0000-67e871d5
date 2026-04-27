@@ -3,6 +3,7 @@ import { useI18n, useT } from "@/lib/i18n";
 import { useLocation } from "@/store/location";
 import { findCity } from "@/data/locations";
 import { loc } from "@/lib/loc";
+import { useLocationPromos } from "@/store/locationPromos";
 
 interface HeroProps {
   product: Product;
