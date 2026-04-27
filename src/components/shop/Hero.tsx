@@ -3,7 +3,7 @@ import { useI18n, useT } from "@/lib/i18n";
 import { useLocation } from "@/store/location";
 import { findCity } from "@/data/locations";
 import { loc } from "@/lib/loc";
-import { useLocationPromos } from "@/store/locationPromos";
+import { useLocationPromos, getPromoGiftGrams } from "@/store/locationPromos";
 
 interface HeroProps {
   product: Product;
@@ -15,27 +15,24 @@ export const Hero = ({ product, onClick }: HeroProps) => {
   const lang = useI18n((s) => s.lang) ?? "ru";
   const citySlug = useLocation((s) => s.city);
   const countrySlug = citySlug ? findCity(citySlug)?.country.slug : undefined;
-  const promo = useLocationPromos((s) => s.getPromo(countrySlug));
+  // Подписываемся на promos, чтобы перерисовываться при смене настроек в админке
+  useLocationPromos((s) => s.promos);
 
-  // Выбираем наименьший вариант >=5g, для которого есть подарок в этой стране
+  // Берём наименьший вариант, для которого по правилам этой geo есть подарок.
+  // Используем тот же helper getPromoGiftGrams, что и корзина — единый источник истины.
   const promoVariant = (() => {
-    if (!countrySlug) return null;
+    if (!countrySlug || !citySlug) return null;
     const eligible = (product.variants ?? [])
-      .filter((v) => {
-        if (!v.pricesByCountry?.[countrySlug]) return false;
-        if (v.grams >= 10 && promo.giftFor10 > 0) return true;
-        if (v.grams >= 5 && v.grams < 10 && promo.giftFor5 > 0) return true;
-        return false;
-      })
+      .filter(
+        (v) =>
+          v.pricesByCountry?.[countrySlug] != null &&
+          getPromoGiftGrams(citySlug, v.grams) > 0
+      )
       .sort((a, b) => a.grams - b.grams);
     return eligible[0] ?? null;
   })();
   const promoPrice = promoVariant?.pricesByCountry?.[countrySlug ?? ""];
-  const giftGrams = promoVariant
-    ? promoVariant.grams >= 10
-      ? promo.giftFor10
-      : promo.giftFor5
-    : 0;
+  const giftGrams = promoVariant ? getPromoGiftGrams(citySlug, promoVariant.grams) : 0;
 
   return (
     <button
