@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { CartLine, Product, StashType } from "@/types/shop";
 import { useLocation } from "@/store/location";
+import { findGiftVariant, getPromoGiftGrams, useLocationPromos } from "@/store/locationPromos";
 
 const lineKey = (l: Pick<CartLine, "product" | "variantId" | "districtSlug" | "stashType"> & { isGift?: boolean }) =>
   `${l.product.id}::${l.variantId ?? ""}::${l.districtSlug ?? ""}::${l.stashType ?? ""}${l.isGift ? "::gift" : ""}`;
@@ -65,9 +66,6 @@ interface CartState {
   /** Пересинхронизировать зеркало с активным городом (вызывается при смене локации). */
   _syncMirror: () => void;
 }
-
-const find5gVariant = (product: Product) =>
-  product.variants?.find((v) => v.id === "5g" || v.grams === 5);
 
 /** Apply updater to active city's cart and return new state slice (incl. mirror). */
 const applyToActive = (
@@ -190,23 +188,24 @@ export const useCart = create<CartState>()(
       },
       linesWithGifts: () => {
         const out: DisplayCartLine[] = [];
+        const citySlug = useLocation.getState().city;
+        const promoRules = useLocationPromos.getState().rules;
         for (const l of get().lines) {
           out.push(l);
           const variant = l.product.variants?.find((v) => v.id === l.variantId);
           const grams = variant?.grams ?? 0;
-          if (grams >= 5) {
-            const giftVariant = find5gVariant(l.product);
-            if (giftVariant) {
-              out.push({
-                product: l.product,
-                qty: l.qty,
-                variantId: giftVariant.id,
-                districtSlug: l.districtSlug,
-                stashType: l.stashType,
-                priceUSD: 0,
-                isGift: true,
-              });
-            }
+          const giftGrams = getPromoGiftGrams(promoRules, citySlug, grams);
+          const giftVariant = giftGrams > 0 ? findGiftVariant(l.product, giftGrams) : undefined;
+          if (giftVariant) {
+            out.push({
+              product: l.product,
+              qty: l.qty,
+              variantId: giftVariant.id,
+              districtSlug: l.districtSlug,
+              stashType: l.stashType,
+              priceUSD: 0,
+              isGift: true,
+            });
           }
         }
         return out;
