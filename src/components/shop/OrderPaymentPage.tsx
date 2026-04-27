@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { ArrowLeft, Check, Copy, Clock, Truck, MapPin, Tag, X } from "lucide-react";
 import { CRYPTO_LIST, useAccount, type CryptoCode } from "@/store/account";
 import { useCart, RESERVATION_MS, DELIVERY_FEE_USD } from "@/store/cart";
+import { useLocation } from "@/store/location";
+import { findGiftVariant, getPromoGiftGrams, useLocationPromos } from "@/store/locationPromos";
 import { useI18n } from "@/lib/i18n";
 import { haptic, useTelegram } from "@/lib/telegram";
 import { formatTHB } from "@/lib/format";
@@ -32,6 +34,8 @@ export const OrderPaymentPage = ({ onBack, onPaid }: OrderPaymentPageProps) => {
   const tr = (ru: string, en: string) => (lang === "ru" ? ru : en);
 
   const rawLines = useCart((s) => s.lines);
+  const citySlug = useLocation((s) => s.city);
+  const promoRules = useLocationPromos((s) => s.rules);
   const cartId = useCart((s) => s.cartId);
   const delivery = useCart((s) => s.delivery);
   const deliveryAddress = useCart((s) => s.deliveryAddress);
@@ -264,7 +268,8 @@ export const OrderPaymentPage = ({ onBack, onPaid }: OrderPaymentPageProps) => {
                   const stashMeta = line.stashType
                     ? STASH_TYPES.find((t) => t.value === line.stashType)
                     : null;
-                  const hasGift = grams >= 5 && line.product.variants?.some((v) => v.id === "5g" || v.grams === 5);
+                  const giftGrams = getPromoGiftGrams(promoRules, citySlug, grams);
+                  const hasGift = giftGrams > 0 && !!findGiftVariant(line.product, giftGrams);
 
                   return (
                     <div
@@ -306,7 +311,7 @@ export const OrderPaymentPage = ({ onBack, onPaid }: OrderPaymentPageProps) => {
 
                       {hasGift && (
                         <div className="mt-2 text-[11px] text-primary font-bold uppercase tracking-wide">
-                          🎁 {tr(`Подарок 5g × ${line.qty}`, `Gift 5g × ${line.qty}`)}
+                          🎁 {tr(`Подарок ${giftGrams}g × ${line.qty}`, `Gift ${giftGrams}g × ${line.qty}`)}
                         </div>
                       )}
                     </div>
