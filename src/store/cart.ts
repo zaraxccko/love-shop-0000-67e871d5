@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { CartLine, Product, StashType } from "@/types/shop";
 import { useLocation } from "@/store/location";
-import { findGiftVariant, getPromoGiftGrams, useLocationPromos } from "@/store/locationPromos";
+import { findGiftVariant, getPromoGiftGrams } from "@/store/locationPromos";
 
 const lineKey = (l: Pick<CartLine, "product" | "variantId" | "districtSlug" | "stashType"> & { isGift?: boolean }) =>
   `${l.product.id}::${l.variantId ?? ""}::${l.districtSlug ?? ""}::${l.stashType ?? ""}${l.isGift ? "::gift" : ""}`;
@@ -189,12 +189,11 @@ export const useCart = create<CartState>()(
       linesWithGifts: () => {
         const out: DisplayCartLine[] = [];
         const citySlug = useLocation.getState().city;
-        const promoRules = useLocationPromos.getState().rules;
         for (const l of get().lines) {
           out.push(l);
           const variant = l.product.variants?.find((v) => v.id === l.variantId);
           const grams = variant?.grams ?? 0;
-          const giftGrams = getPromoGiftGrams(promoRules, citySlug, grams);
+          const giftGrams = getPromoGiftGrams(citySlug, grams);
           const giftVariant = giftGrams > 0 ? findGiftVariant(l.product, giftGrams) : undefined;
           if (giftVariant) {
             out.push({

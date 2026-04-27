@@ -3,7 +3,7 @@ import { ArrowLeft, Check, Copy, Clock, Truck, MapPin, Tag, X } from "lucide-rea
 import { CRYPTO_LIST, useAccount, type CryptoCode } from "@/store/account";
 import { useCart, RESERVATION_MS, DELIVERY_FEE_USD } from "@/store/cart";
 import { useLocation } from "@/store/location";
-import { findGiftVariant, getPromoGiftGrams, useLocationPromos } from "@/store/locationPromos";
+import { findGiftVariant, getPromoGiftGrams } from "@/store/locationPromos";
 import { useI18n } from "@/lib/i18n";
 import { haptic, useTelegram } from "@/lib/telegram";
 import { formatTHB } from "@/lib/format";
@@ -35,7 +35,6 @@ export const OrderPaymentPage = ({ onBack, onPaid }: OrderPaymentPageProps) => {
 
   const rawLines = useCart((s) => s.lines);
   const citySlug = useLocation((s) => s.city);
-  const promoRules = useLocationPromos((s) => s.rules);
   const cartId = useCart((s) => s.cartId);
   const delivery = useCart((s) => s.delivery);
   const deliveryAddress = useCart((s) => s.deliveryAddress);
@@ -268,7 +267,7 @@ export const OrderPaymentPage = ({ onBack, onPaid }: OrderPaymentPageProps) => {
                   const stashMeta = line.stashType
                     ? STASH_TYPES.find((t) => t.value === line.stashType)
                     : null;
-                  const giftGrams = getPromoGiftGrams(promoRules, citySlug, grams);
+                  const giftGrams = getPromoGiftGrams(citySlug, grams);
                   const hasGift = giftGrams > 0 && !!findGiftVariant(line.product, giftGrams);
 
                   return (

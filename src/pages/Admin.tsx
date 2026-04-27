@@ -8,11 +8,6 @@ import { useT } from "@/lib/i18n";
 import { loc } from "@/lib/loc";
 import { COUNTRIES, findDistrict } from "@/data/locations";
 import { useLocationToggles } from "@/store/locationToggles";
-import {
-  resolvePromoRule,
-  useLocationPromos,
-  type LocationPromoRule,
-} from "@/store/locationPromos";
 import type { Category, Product, LocalizedString, StashType, VariantStash } from "@/types/shop";
 import { STASH_TYPES } from "@/types/shop";
 import { Button } from "@/components/ui/button";
@@ -1460,38 +1455,7 @@ interface LocationsAdminProps { onBack: () => void }
 const LocationsAdmin = ({ onBack }: LocationsAdminProps) => {
   const disabled = useLocationToggles((s) => s.disabled);
   const setDisabled = useLocationToggles((s) => s.setDisabled);
-  const promoRules = useLocationPromos((s) => s.rules);
-  const setPromoRule = useLocationPromos((s) => s.setRule);
   const isDisabled = (slug: string) => disabled.includes(slug);
-  const updatePromo = (slug: string, patch: Partial<LocationPromoRule>) =>
-    setPromoRule(slug, { ...resolvePromoRule(promoRules, slug), ...patch });
-  const promoInputs = (slug: string) => {
-    const promo = resolvePromoRule(promoRules, slug);
-    return (
-      <div className="grid grid-cols-2 gap-2 mt-3">
-        <label className="text-[11px] text-muted-foreground">
-          5g → подарок
-          <Input
-            type="number"
-            min={0}
-            value={promo.giftFor5}
-            onChange={(e) => updatePromo(slug, { giftFor5: Number(e.target.value) })}
-            className="mt-1 h-9 rounded-xl bg-background"
-          />
-        </label>
-        <label className="text-[11px] text-muted-foreground">
-          10g → подарок
-          <Input
-            type="number"
-            min={0}
-            value={promo.giftFor10 ?? promo.giftFor5}
-            onChange={(e) => updatePromo(slug, { giftFor10: Number(e.target.value) })}
-            className="mt-1 h-9 rounded-xl bg-background"
-          />
-        </label>
-      </div>
-    );
-  };
 
   return (
     <div className="min-h-screen max-w-md mx-auto bg-background px-5 pt-6 pb-10">
@@ -1511,7 +1475,7 @@ const LocationsAdmin = ({ onBack }: LocationsAdminProps) => {
       </p>
 
       <div className="bg-card rounded-2xl shadow-card p-4 mb-4 space-y-2">
-        <div className="font-bold text-sm">Акция по умолчанию</div>
+        <div className="font-bold text-sm">Акции фиксированные</div>
         <div className="text-xs text-muted-foreground">
           Для всех локаций: 5g → +5g. Для ОАЭ: 5g → +2g, 10g → +5g.
         </div>
@@ -1537,7 +1501,6 @@ const LocationsAdmin = ({ onBack }: LocationsAdminProps) => {
                   onCheckedChange={(checked) => setDisabled(country.slug, !checked)}
                 />
               </div>
-              <div className="px-4 pb-4">{promoInputs(country.slug)}</div>
 
               {!countryOff && country.cities.length > 0 && (
                 <div className="border-t divide-y">
@@ -1552,7 +1515,6 @@ const LocationsAdmin = ({ onBack }: LocationsAdminProps) => {
                             onCheckedChange={(checked) => setDisabled(city.slug, !checked)}
                           />
                         </div>
-                        {promoInputs(city.slug)}
                       </div>
                     );
                   })}

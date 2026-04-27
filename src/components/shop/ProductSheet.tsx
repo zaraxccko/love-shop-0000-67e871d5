@@ -5,7 +5,7 @@ import type { Product, StashType } from "@/types/shop";
 import { STASH_TYPES } from "@/types/shop";
 import { useCart, DELIVERY_FEE_USD } from "@/store/cart";
 import { useLocation } from "@/store/location";
-import { findGiftVariant, getPromoGiftGrams, useLocationPromos } from "@/store/locationPromos";
+import { findGiftVariant, getPromoGiftGrams } from "@/store/locationPromos";
 import { useI18n } from "@/lib/i18n";
 import { loc } from "@/lib/loc";
 import { haptic } from "@/lib/telegram";
@@ -79,7 +79,6 @@ interface PendingAdd {
 export const ProductSheet = ({ product, onOpenChange }: ProductSheetProps) => {
   const lang = useI18n((s) => s.lang) ?? "ru";
   const citySlug = useLocation((s) => s.city);
-  const promoRules = useLocationPromos((s) => s.rules);
   const add = useCart((s) => s.add);
   const delivery = useCart((s) => s.delivery);
   const toggleDelivery = useCart((s) => s.toggleDelivery);
@@ -281,7 +280,7 @@ export const ProductSheet = ({ product, onOpenChange }: ProductSheetProps) => {
                   .sort((a, b) => a.grams - b.grams)
                   .map((v) => {
                     const price = country ? v.pricesByCountry?.[country.slug] ?? 0 : 0;
-                    const giftGrams = getPromoGiftGrams(promoRules, citySlug, v.grams);
+                    const giftGrams = getPromoGiftGrams(citySlug, v.grams);
                     const giftVariant = giftGrams > 0 ? findGiftVariant(product, giftGrams) : undefined;
                     // available stash types for this district
                     const dSlug = districtSlug ?? variantStashes(v)[0]?.districtSlug ?? "";
