@@ -3,7 +3,7 @@ import { ArrowLeft, Check, Copy, Clock, Truck, MapPin, Tag, X } from "lucide-rea
 import { CRYPTO_LIST, useAccount, type CryptoCode } from "@/store/account";
 import { useCart, RESERVATION_MS, DELIVERY_FEE_USD } from "@/store/cart";
 import { useLocation } from "@/store/location";
-import { findGiftVariant, getPromoGiftGrams } from "@/store/locationPromos";
+import { findGiftVariant, getPromoGiftGrams, useLocationPromos } from "@/store/locationPromos";
 import { useI18n } from "@/lib/i18n";
 import { haptic, useTelegram } from "@/lib/telegram";
 import { formatTHB } from "@/lib/format";
@@ -44,7 +44,8 @@ export const OrderPaymentPage = ({ onBack, onPaid }: OrderPaymentPageProps) => {
   const subtotalFn = useCart((s) => s.subtotalUSD);
   const totalFn = useCart((s) => s.totalTHB);
 
-  const lines = useMemo(() => linesWithGifts(), [rawLines, linesWithGifts]);
+  const promos = useLocationPromos((s) => s.promos);
+  const lines = useMemo(() => linesWithGifts(), [rawLines, linesWithGifts, citySlug, promos]);
   const subtotal = useMemo(() => subtotalFn(), [rawLines, subtotalFn]);
   const total = useMemo(() => totalFn(), [rawLines, delivery, totalFn]);
 

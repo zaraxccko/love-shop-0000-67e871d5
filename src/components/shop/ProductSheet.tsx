@@ -5,7 +5,7 @@ import type { Product, StashType } from "@/types/shop";
 import { STASH_TYPES } from "@/types/shop";
 import { useCart, DELIVERY_FEE_USD } from "@/store/cart";
 import { useLocation } from "@/store/location";
-import { findGiftVariant, getPromoGiftGrams } from "@/store/locationPromos";
+import { findGiftVariant, getPromoGiftGrams, useLocationPromos } from "@/store/locationPromos";
 import { useI18n } from "@/lib/i18n";
 import { loc } from "@/lib/loc";
 import { haptic } from "@/lib/telegram";
@@ -79,6 +79,7 @@ interface PendingAdd {
 export const ProductSheet = ({ product, onOpenChange }: ProductSheetProps) => {
   const lang = useI18n((s) => s.lang) ?? "ru";
   const citySlug = useLocation((s) => s.city);
+  void useLocationPromos((s) => s.promos); // re-render on promo settings change
   const add = useCart((s) => s.add);
   const delivery = useCart((s) => s.delivery);
   const toggleDelivery = useCart((s) => s.toggleDelivery);
