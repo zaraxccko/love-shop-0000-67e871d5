@@ -264,7 +264,16 @@ function welcomeKeyboard(lang: WelcomeLang) {
   };
 }
 
-async function rememberTelegramUser(from?: TelegramBot.User): Promise<void> {
+type TelegramFrom = {
+  id: number;
+  is_bot?: boolean;
+  username?: string;
+  first_name?: string;
+  last_name?: string;
+  language_code?: string;
+};
+
+async function rememberTelegramUser(from?: TelegramFrom): Promise<void> {
   if (!from?.id || from.is_bot) return;
 
   const tgId = BigInt(from.id);
