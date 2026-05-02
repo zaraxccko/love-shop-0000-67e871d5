@@ -42,6 +42,10 @@ function isRecoverablePhotoError(err: any) {
   return telegramCode(err) === 400 && /http url|file identifier|failed to get|wrong file|image|caption/i.test(desc);
 }
 
+function isReplyMarkupError(err: any) {
+  return telegramCode(err) === 400 && /button|reply markup|inline keyboard|url/i.test(telegramDescription(err));
+}
+
 interface SendOpts {
   chatId: number | string;
   text: string;
@@ -50,15 +54,14 @@ interface SendOpts {
 }
 
 async function sendOne({ chatId, text, imageUrl, button }: SendOpts): Promise<void> {
-  const reply_markup = button
-    ? { inline_keyboard: [[{ text: button.text, url: button.url }]] }
-    : undefined;
+  const getReplyMarkup = (includeButton: boolean) =>
+    includeButton && button ? { inline_keyboard: [[{ text: button.text, url: button.url }]] } : undefined;
 
-  const sendText = async (parseHtml: boolean) => {
+  const sendText = async (parseHtml: boolean, includeButton: boolean) => {
     await withTimeout(
       bot.sendMessage(chatId, text, {
         ...(parseHtml ? { parse_mode: "HTML" as const } : {}),
-        reply_markup,
+        reply_markup: getReplyMarkup(includeButton),
         disable_web_page_preview: false,
       }),
       SEND_TIMEOUT_MS,
@@ -66,26 +69,43 @@ async function sendOne({ chatId, text, imageUrl, button }: SendOpts): Promise<vo
     );
   };
 
-  const sendTextWithFallback = async () => {
+  const sendTextWithFallback = async (includeButton = Boolean(button)): Promise<void> => {
     try {
-      await sendText(true);
+      await sendText(true, includeButton);
     } catch (err) {
-      if (!isParseModeError(err)) throw err;
-      await sendText(false);
+      if (isParseModeError(err)) return sendText(false, includeButton);
+      if (includeButton && isReplyMarkupError(err)) {
+        console.warn(`[broadcast] button skipped chatId=${chatId}: ${telegramDescription(err)}`);
+        return sendTextWithFallback(false);
+      }
+      throw err;
     }
   };
 
-  const sendPhoto = async (parseHtml: boolean) => {
+  const sendPhoto = async (parseHtml: boolean, includeButton: boolean) => {
     if (!imageUrl) return;
     await withTimeout(
       bot.sendPhoto(chatId, imageUrl, {
         caption: text,
         ...(parseHtml ? { parse_mode: "HTML" as const } : {}),
-        reply_markup,
+        reply_markup: getReplyMarkup(includeButton),
       }),
       SEND_TIMEOUT_MS,
       `sendPhoto chatId=${chatId}`
     );
+  };
+
+  const sendPhotoWithFallback = async (includeButton = Boolean(button)): Promise<void> => {
+    try {
+      await sendPhoto(true, includeButton);
+    } catch (err) {
+      if (isParseModeError(err)) return sendPhoto(false, includeButton);
+      if (includeButton && isReplyMarkupError(err)) {
+        console.warn(`[broadcast] button skipped chatId=${chatId}: ${telegramDescription(err)}`);
+        return sendPhotoWithFallback(false);
+      }
+      throw err;
+    }
   };
 
   let attempt = 0;
@@ -93,11 +113,9 @@ async function sendOne({ chatId, text, imageUrl, button }: SendOpts): Promise<vo
     try {
       if (imageUrl) {
         try {
-          await sendPhoto(true);
+          await sendPhotoWithFallback();
         } catch (err) {
-          if (isParseModeError(err)) {
-            await sendPhoto(false);
-          } else if (isRecoverablePhotoError(err)) {
+          if (isRecoverablePhotoError(err)) {
             console.warn(`[broadcast] photo skipped chatId=${chatId}: ${telegramDescription(err)}`);
             await sendTextWithFallback();
           } else {
