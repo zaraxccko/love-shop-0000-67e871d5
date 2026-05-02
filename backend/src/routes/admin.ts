@@ -516,17 +516,19 @@ export async function adminRoutes(app: FastifyInstance) {
     });
 
     (async () => {
+      console.log(`[broadcast] starting logId=${log.id}, recipients=${recipients.length}`);
       const result = await broadcast({
         recipients,
         text,
         imageUrl: imageForSend,
         button: normalizedButton,
       });
+      console.log(`[broadcast] done logId=${log.id}, sent=${result.sent}, failed=${result.failed}`);
       await prisma.broadcastLog.update({
         where: { id: log.id },
         data: { sentCount: result.sent, failedCount: result.failed },
       });
-    })().catch(() => undefined);
+    })().catch((e) => console.error("[broadcast] fatal:", e));
 
     return { queued: recipients.length, logId: log.id };
   });
