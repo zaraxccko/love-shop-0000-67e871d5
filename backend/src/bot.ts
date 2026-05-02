@@ -38,7 +38,7 @@ function isParseModeError(err: any) {
 
 function isRecoverablePhotoError(err: any) {
   const desc = telegramDescription(err);
-  return telegramCode(err) === 400 && /http url|file identifier|failed to get|wrong file|image/i.test(desc);
+  return telegramCode(err) === 400 && /http url|file identifier|failed to get|wrong file|image|caption/i.test(desc);
 }
 
 interface SendOpts {
