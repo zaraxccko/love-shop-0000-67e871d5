@@ -136,18 +136,35 @@ const UserRow = ({ user }: { user: AdminUser }) => {
       <div className="min-w-0 flex-1">
         <div className="text-sm font-semibold truncate">{name}</div>
         {user.username ? (
-          <a
-            href={`https://t.me/${user.username}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => {
+          <button
+            type="button"
+            onClick={async (e) => {
               e.preventDefault();
-              openTelegramProfile(user.username!);
+              e.stopPropagation();
+              const handle = `@${user.username}`;
+              try {
+                if (navigator.clipboard?.writeText) {
+                  await navigator.clipboard.writeText(handle);
+                } else {
+                  const ta = document.createElement("textarea");
+                  ta.value = handle;
+                  ta.style.position = "fixed";
+                  ta.style.opacity = "0";
+                  document.body.appendChild(ta);
+                  ta.select();
+                  document.execCommand("copy");
+                  document.body.removeChild(ta);
+                }
+                haptic("success");
+                toast({ description: `Скопировано: ${handle}` });
+              } catch {
+                toast({ description: "Не удалось скопировать", variant: "destructive" });
+              }
             }}
-            className="text-xs text-primary flex items-center gap-0.5 hover:underline"
+            className="text-xs text-primary flex items-center gap-0.5 hover:underline cursor-pointer"
           >
-            @{user.username} <ExternalLink className="w-3 h-3" />
-          </a>
+            @{user.username}
+          </button>
         ) : (
           <span className="text-xs text-muted-foreground">ID: {user.tgId}</span>
         )}
