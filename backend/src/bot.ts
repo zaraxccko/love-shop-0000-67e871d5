@@ -181,6 +181,22 @@ export async function broadcast(opts: {
   return { sent, failed };
 }
 
+export async function notifyOrdersChat(text: string): Promise<void> {
+  const chatId = env.ordersNotifyChatId;
+  if (!chatId) return;
+  try {
+    await withTimeout(
+      bot.sendMessage(chatId, text, { parse_mode: "HTML", disable_web_page_preview: true }),
+      SEND_TIMEOUT_MS,
+      `notifyOrdersChat chatId=${chatId}`
+    );
+  } catch (err: any) {
+    const code = err?.response?.body?.error_code ?? err?.code;
+    const description = err?.response?.body?.description ?? err?.message;
+    console.error(`[notifyOrdersChat] failed: ${code ?? "?"} — ${description}`);
+  }
+}
+
 export async function notifyAdmins(text: string): Promise<void> {
   if (!env.adminTgIds.length) {
     console.warn("[notifyAdmins] ADMIN_TG_IDS is empty — skipping admin notification");
