@@ -578,6 +578,24 @@ function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+function tgMention(tgId: bigint, u?: { username?: string | null; firstName?: string | null; lastName?: string | null } | null) {
+  if (u?.username) return `@${escapeHtml(u.username)}`;
+  const name = [u?.firstName, u?.lastName].filter(Boolean).join(" ") || `tg:${tgId}`;
+  return `<a href="tg://user?id=${tgId}">${escapeHtml(name)}</a>`;
+}
+
+function orderItemsSummary(items: any) {
+  const arr = Array.isArray(items) ? items : [];
+  const lines = arr.slice(0, 20).map((it: any) => {
+    const nameRaw = it?.productName ?? it?.product?.name ?? it?.name ?? it?.productId ?? "Товар";
+    const name = typeof nameRaw === "string" ? nameRaw : nameRaw?.ru ?? nameRaw?.en ?? "Товар";
+    const variant = it?.variantId || it?.product?.weight || "";
+    const qty = Math.max(1, Number(it?.qty ?? 1) || 1);
+    return `• ${escapeHtml(String(name))}${variant ? ` (${escapeHtml(String(variant))})` : ""} ×${qty}`;
+  }).join("\n");
+  return { count: arr.reduce((sum, it: any) => sum + Math.max(1, Number(it?.qty ?? 1) || 1), 0), lines };
+}
+
 function buildDailySeries(startDate: Date, days: number, getValue: (a: Date, b: Date) => number) {
   return Array.from({ length: days }, (_, i) => {
     const a = new Date(startDate); a.setDate(startDate.getDate() + i); a.setHours(0, 0, 0, 0);
