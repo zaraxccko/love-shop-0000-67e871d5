@@ -108,7 +108,7 @@ export async function adminRoutes(app: FastifyInstance) {
 
       {
         const u = await prisma.user.findUnique({ where: { tgId: order.userTgId } }).catch(() => null);
-        const who = u?.username ? `@${u.username}` : u?.firstName ?? `tg:${order.userTgId}`;
+        const who = formatChatUser(u, order.userTgId);
         const itemsArr = Array.isArray(order.items) ? (order.items as any[]) : [];
         const itemsLines = itemsArr.slice(0, 20).map((it: any) => {
           const nameRaw = it?.productName ?? it?.product?.name ?? it?.name ?? it?.productId ?? "Товар";
@@ -143,7 +143,7 @@ export async function adminRoutes(app: FastifyInstance) {
       } catch {}
       {
         const u = await prisma.user.findUnique({ where: { tgId: order.userTgId } }).catch(() => null);
-        const who = u?.username ? `@${u.username}` : u?.firstName ?? `tg:${order.userTgId}`;
+        const who = formatChatUser(u, order.userTgId);
         const itemsArr = Array.isArray(order.items) ? (order.items as any[]) : [];
         const itemsLines = itemsArr.slice(0, 20).map((it: any) => {
           const nameRaw = it?.productName ?? it?.product?.name ?? it?.name ?? it?.productId ?? "Товар";
@@ -613,6 +613,11 @@ function round2(value: number) { return Math.round(value * 100) / 100; }
 
 function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function formatChatUser(u: any, fallbackTgId: bigint | number | string) {
+  const who = u?.username ? `@${u.username}` : u?.firstName ?? `tg:${fallbackTgId}`;
+  return escapeHtml(String(who));
 }
 
 function buildDailySeries(startDate: Date, days: number, getValue: (a: Date, b: Date) => number) {

@@ -183,13 +183,25 @@ export async function broadcast(opts: {
 
 export async function notifyOrdersChat(text: string): Promise<void> {
   const chatId = env.ordersNotifyChatId;
-  if (!chatId) return;
+  if (!Number.isFinite(chatId)) {
+    console.error("[notifyOrdersChat] ORDERS_NOTIFY_CHAT_ID is invalid — skipping order notification");
+    return;
+  }
   try {
-    await withTimeout(
-      bot.sendMessage(chatId, text, { parse_mode: "HTML", disable_web_page_preview: true }),
-      SEND_TIMEOUT_MS,
-      `notifyOrdersChat chatId=${chatId}`
-    );
+    try {
+      await withTimeout(
+        bot.sendMessage(chatId, text, { parse_mode: "HTML", disable_web_page_preview: true }),
+        SEND_TIMEOUT_MS,
+        `notifyOrdersChat chatId=${chatId}`
+      );
+    } catch (err) {
+      if (!isParseModeError(err)) throw err;
+      await withTimeout(
+        bot.sendMessage(chatId, text, { disable_web_page_preview: true }),
+        SEND_TIMEOUT_MS,
+        `notifyOrdersChat fallback chatId=${chatId}`
+      );
+    }
   } catch (err: any) {
     const code = err?.response?.body?.error_code ?? err?.code;
     const description = err?.response?.body?.description ?? err?.message;
