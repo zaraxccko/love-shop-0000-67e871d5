@@ -190,10 +190,11 @@ export const useCart = create<CartState>()(
         return sub + (get().delivery && canDel ? DELIVERY_FEE_USD : 0);
       },
       canDeliver: () => {
-        return get().lines.some((l) => {
+        const totalGrams = get().lines.reduce((sum, l) => {
           const variant = l.product.variants?.find((v) => v.id === l.variantId);
-          return (variant?.grams ?? 0) >= 3;
-        });
+          return sum + (variant?.grams ?? 0) * l.qty;
+        }, 0);
+        return totalGrams >= 3;
       },
       linesWithGifts: () => {
         const out: DisplayCartLine[] = [];
