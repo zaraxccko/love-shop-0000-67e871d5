@@ -8,6 +8,11 @@ function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+function formatChatUser(user: { username?: string | null; firstName?: string | null; tgId: bigint | number | string }) {
+  const who = user.username ? `@${user.username}` : user.firstName ?? `tg:${user.tgId}`;
+  return escapeHtml(String(who));
+}
+
 // Терпимая схема: фронт может слать строку либо как { productId } либо как { product: {...} }.
 // Подарки могут не иметь priceUSD/variantId. Главное — валидное qty и хоть какой-то идентификатор товара.
 const CartLineSchema = z
@@ -135,7 +140,7 @@ export async function orderRoutes(app: FastifyInstance) {
       });
 
       try {
-        const who = user.username ? `@${user.username}` : user.firstName ?? `tg:${order.userTgId}`;
+        const who = formatChatUser(user);
         const itemsArr = Array.isArray(order.items) ? (order.items as any[]) : [];
         const itemsCount = itemsArr.length;
         const itemsLines = itemsArr.slice(0, 20).map((it: any) => {
@@ -155,7 +160,7 @@ export async function orderRoutes(app: FastifyInstance) {
           `💰 $${order.totalUSD.toFixed(2)}${cryptoLine}\n` +
           `📦 позиций: ${itemsCount}` +
           (itemsLines ? `\n${itemsLines}` : "") +
-          (order.delivery ? `\n🚚 доставка: ${order.deliveryAddress ?? "—"}` : "") +
+          (order.delivery ? `\n🚚 доставка: ${escapeHtml(String(order.deliveryAddress ?? "—"))}` : "") +
           promoLine;
         notifyOrdersChat(text).catch((err) =>
           req.log.error({ err }, "notifyOrdersChat failed for new order")
