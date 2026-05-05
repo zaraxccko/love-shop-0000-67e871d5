@@ -441,6 +441,9 @@ export async function adminRoutes(app: FastifyInstance) {
     const confirmedOrders = ordersAll.filter((o) => o.status === "completed");
     const orderUsers = new Set(paidLikeOrders.map((o) => o.userTgId.toString()));
     const buyerUsers = new Set(confirmedOrders.map((o) => o.userTgId.toString()));
+    const activeUserIds = new Set(
+      paidLikeOrders.filter((o) => o.createdAt >= startOf30d).map((o) => o.userTgId.toString())
+    );
 
     const totals = {
       users: users.length,

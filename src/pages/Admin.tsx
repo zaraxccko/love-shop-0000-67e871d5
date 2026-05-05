@@ -157,7 +157,7 @@ const AdminPage = ({ onExit }: AdminPageProps) => {
 
   if (selectedCountry === "__analytics__") {
     return (
-      <div className="min-h-screen max-w-md mx-auto bg-background px-5 pt-6 pb-10">
+      <div className="min-h-screen w-full max-w-4xl mx-auto bg-background px-5 sm:px-10 pt-6 pb-10">
         <header className="flex items-center gap-3 mb-6">
           <button
             onClick={() => setSelectedCountry(null)}
@@ -165,7 +165,7 @@ const AdminPage = ({ onExit }: AdminPageProps) => {
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <h1 className="font-display font-bold text-base flex-1 text-center">Аналитика</h1>
+          <h1 className="font-display font-extrabold text-2xl flex-1 text-center">Аналитика</h1>
           <span className="w-10" />
         </header>
         <Tabs defaultValue="analytics">
