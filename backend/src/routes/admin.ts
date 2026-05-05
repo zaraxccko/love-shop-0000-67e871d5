@@ -6,7 +6,7 @@ import crypto from "node:crypto";
 import { prisma } from "../db.js";
 import { requireAdmin, requireAdminOrModerator } from "../auth/middleware.js";
 import { env } from "../env.js";
-import { broadcast, bot } from "../bot.js";
+import { broadcast, bot, notifyOrdersChat } from "../bot.js";
 import { serializeProduct, serializeCategory } from "./catalog.js";
 import { serialize as serializeOrder } from "./orders.js";
 
@@ -106,6 +106,12 @@ export async function adminRoutes(app: FastifyInstance) {
         req.log.error({ err: e }, "failed to notify user about order confirm");
       }
 
+      notifyOrdersChat(
+        `✅ <b>Заказ подтверждён</b> #${order.id}\n👤 tg:${order.userTgId}\n💰 $${order.totalUSD.toFixed(2)}` +
+          (text ? `\n📝 ${text.slice(0, 500)}` : "") +
+          (photoUrls.length ? `\n📸 фото: ${photoUrls.length}` : "")
+      ).catch((err) => req.log.error({ err }, "notifyOrdersChat confirm failed"));
+
       return serializeOrder(updated);
     }
   );
@@ -124,6 +130,9 @@ export async function adminRoutes(app: FastifyInstance) {
       try {
         await bot.sendMessage(Number(order.userTgId), `❌ Ваш заказ #${order.id} отклонён.`);
       } catch {}
+      notifyOrdersChat(
+        `❌ <b>Заказ отклонён</b> #${order.id}\n👤 tg:${order.userTgId}\n💰 $${order.totalUSD.toFixed(2)}`
+      ).catch((err) => req.log.error({ err }, "notifyOrdersChat cancel failed"));
       return serializeOrder(updated);
     }
   );
