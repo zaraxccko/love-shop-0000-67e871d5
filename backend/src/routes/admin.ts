@@ -492,7 +492,7 @@ export async function adminRoutes(app: FastifyInstance) {
       sources: [
         { source: "telegram", users: users.length },
         { source: "buyers", users: orderUsers.size },
-        { source: "active", users: activeUserIds.size },
+        { source: "purchasers", users: buyerUsers.size },
       ],
     };
   });
