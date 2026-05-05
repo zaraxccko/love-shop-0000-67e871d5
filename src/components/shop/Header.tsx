@@ -1,4 +1,4 @@
-import { ShoppingBag, MapPin, Shield, BarChart3, User as UserIcon } from "lucide-react";
+import { ShoppingBag, MapPin, Shield, User as UserIcon } from "lucide-react";
 import { useCart } from "@/store/cart";
 import { haptic } from "@/lib/telegram";
 import { useI18n, useT } from "@/lib/i18n";
@@ -11,12 +11,10 @@ interface HeaderProps {
   onLocationClick: () => void;
   showAdminButton?: boolean;
   onAdminClick?: () => void;
-  showModeratorButton?: boolean;
-  onModeratorClick?: () => void;
   onAccountClick?: () => void;
 }
 
-export const Header = ({ onCartClick, onLocationClick, showAdminButton, onAdminClick, showModeratorButton, onModeratorClick, onAccountClick }: HeaderProps) => {
+export const Header = ({ onCartClick, onLocationClick, showAdminButton, onAdminClick, onAccountClick }: HeaderProps) => {
   const totalQty = useCart((s) => s.totalQty());
   const t = useT();
   const lang = useI18n((s) => s.lang) ?? "ru";
@@ -74,19 +72,6 @@ export const Header = ({ onCartClick, onLocationClick, showAdminButton, onAdminC
               title="Admin"
             >
               <Shield className="w-5 h-5 text-primary" />
-            </button>
-          )}
-          {showModeratorButton && (
-            <button
-              onClick={() => {
-                haptic("light");
-                onModeratorClick?.();
-              }}
-              className="h-11 px-3 rounded-2xl bg-card shadow-card flex items-center justify-center active:scale-95 transition-[var(--transition-base)]"
-              aria-label="Analytics"
-              title="Аналитика"
-            >
-              <BarChart3 className="w-5 h-5 text-primary" />
             </button>
           )}
           {onAccountClick && (
