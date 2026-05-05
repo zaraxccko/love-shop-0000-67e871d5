@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { prisma } from "../db.js";
 import { requireAuth } from "../auth/middleware.js";
+import { isModeratorTgId } from "../auth/telegram.js";
 
 export async function meRoutes(app: FastifyInstance) {
   app.get("/me", { preHandler: requireAuth }, async (req) => {
@@ -16,6 +17,7 @@ export async function meRoutes(app: FastifyInstance) {
       citySlug: user.citySlug,
       balanceUSD: user.balanceUSD,
       isAdmin: user.isAdmin,
+      isModerator: isModeratorTgId(user.tgId),
     };
   });
 }

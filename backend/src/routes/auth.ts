@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { prisma } from "../db.js";
-import { validateInitData, isAdminTgId } from "../auth/telegram.js";
+import { validateInitData, isAdminTgId, isModeratorTgId } from "../auth/telegram.js";
 
 const InitDataSchema = z.object({ initData: z.string().min(10).max(8192) });
 
@@ -20,6 +20,7 @@ export async function authRoutes(app: FastifyInstance) {
 
     const tgId = BigInt(tgUser.id);
     const isAdmin = isAdminTgId(tgId);
+    const isModerator = isModeratorTgId(tgId);
 
     const user = await prisma.user.upsert({
       where: { tgId },
@@ -58,6 +59,7 @@ export async function authRoutes(app: FastifyInstance) {
         lang: user.lang,
         balanceUSD: user.balanceUSD,
         isAdmin: user.isAdmin,
+        isModerator,
       },
     };
   });
