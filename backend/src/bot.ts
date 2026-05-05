@@ -187,6 +187,10 @@ export async function notifyOrdersChat(text: string): Promise<void> {
     console.error("[notifyOrdersChat] OTSTUK_CHAT_ID / ORDERS_CHAT_ID / ORDERS_NOTIFY_CHAT_ID is empty — order notification was NOT sent");
     return;
   }
+  if (env.adminTgIds.some((id) => id.toString() === chatId)) {
+    console.error(`[notifyOrdersChat] chatId=${chatId} is an admin DM, not otstuk chat — order notification was NOT sent`);
+    return;
+  }
   try {
     await withTimeout(
       bot.sendMessage(chatId, text, { parse_mode: "HTML", disable_web_page_preview: true }),
