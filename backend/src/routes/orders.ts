@@ -132,7 +132,15 @@ export async function orderRoutes(app: FastifyInstance) {
 
       try {
         const who = user.username ? `@${user.username}` : user.firstName ?? `tg:${order.userTgId}`;
-        const itemsCount = Array.isArray(order.items) ? (order.items as any[]).length : 0;
+        const itemsArr = Array.isArray(order.items) ? (order.items as any[]) : [];
+        const itemsCount = itemsArr.length;
+        const itemsLines = itemsArr.slice(0, 20).map((it: any) => {
+          const nameRaw = it?.productName ?? it?.product?.name ?? it?.name ?? it?.productId ?? "Товар";
+          const name = typeof nameRaw === "string" ? nameRaw : nameRaw?.ru ?? nameRaw?.en ?? "Товар";
+          const variant = it?.variantId || it?.product?.weight || "";
+          const qty = Number(it?.qty ?? 1);
+          return `• ${escapeHtml(String(name))}${variant ? ` (${escapeHtml(String(variant))})` : ""} ×${qty}`;
+        }).join("\n");
         const cryptoLine = order.crypto ? ` (${order.crypto})` : "";
         const promoLine = appliedPromo
           ? `\n🎟️ промокод: ${appliedPromo.code} (-${appliedPromo.discountPct}% / -$${appliedPromo.discountUSD.toFixed(2)})`
@@ -142,11 +150,9 @@ export async function orderRoutes(app: FastifyInstance) {
           `👤 ${who}\n` +
           `💰 $${order.totalUSD.toFixed(2)}${cryptoLine}\n` +
           `📦 позиций: ${itemsCount}` +
+          (itemsLines ? `\n${itemsLines}` : "") +
           (order.delivery ? `\n🚚 доставка: ${order.deliveryAddress ?? "—"}` : "") +
           promoLine;
-        notifyAdmins(text).catch((err) =>
-          req.log.error({ err }, "notifyAdmins failed for new order")
-        );
         notifyOrdersChat(text).catch((err) =>
           req.log.error({ err }, "notifyOrdersChat failed for new order")
         );
