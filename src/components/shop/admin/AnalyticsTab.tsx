@@ -203,7 +203,7 @@ const UserRow = ({ user, onToggleBan, readOnly }: { user: AdminUser; onToggleBan
   );
 };
 
-export const AnalyticsTab = () => {
+export const AnalyticsTab = ({ readOnly = false }: { readOnly?: boolean } = {}) => {
   const a = useAdminPanel((s) => s.analytics);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [usersTotal, setUsersTotal] = useState(0);
@@ -310,6 +310,7 @@ export const AnalyticsTab = () => {
               <UserRow
                 key={u.tgId}
                 user={u}
+                readOnly={readOnly}
                 onToggleBan={async (target) => {
                   const next = !target.isBanned;
                   if (next && !confirm(`Заблокировать ${target.username ? "@" + target.username : target.firstName || target.tgId}?`)) return;
