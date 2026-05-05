@@ -3,10 +3,7 @@ import { z } from "zod";
 import { prisma } from "../db.js";
 import { requireAuth } from "../auth/middleware.js";
 import { notifyOrdersChat } from "../bot.js";
-
-function escapeHtml(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
+import { buildNewOrderNotification } from "../orderNotifications.js";
 
 // Терпимая схема: фронт может слать строку либо как { productId } либо как { product: {...} }.
 // Подарки могут не иметь priceUSD/variantId. Главное — валидное qty и хоть какой-то идентификатор товара.
@@ -135,32 +132,10 @@ export async function orderRoutes(app: FastifyInstance) {
       });
 
       try {
-        const displayName = [user.firstName, user.lastName].filter(Boolean).join(" ") || `tg:${order.userTgId}`;
-        const who = user.username
-          ? `@${escapeHtml(user.username)}`
-          : `<a href="tg://user?id=${order.userTgId}">${escapeHtml(displayName)}</a>`;
-        const itemsArr = Array.isArray(order.items) ? (order.items as any[]) : [];
-        const itemsCount = itemsArr.reduce((sum, it: any) => sum + Math.max(1, Number(it?.qty ?? 1) || 1), 0);
-        const itemsLines = itemsArr.slice(0, 20).map((it: any) => {
-          const nameRaw = it?.productName ?? it?.product?.name ?? it?.name ?? it?.productId ?? "Товар";
-          const name = typeof nameRaw === "string" ? nameRaw : nameRaw?.ru ?? nameRaw?.en ?? "Товар";
-          const variant = it?.variantId || it?.product?.weight || "";
-          const qty = Number(it?.qty ?? 1);
-          return `• ${escapeHtml(String(name))}${variant ? ` (${escapeHtml(String(variant))})` : ""} ×${qty}`;
-        }).join("\n");
-        const cryptoLine = order.crypto ? ` (${order.crypto})` : "";
         const promoLine = appliedPromo
           ? `\n🎟️ промокод: ${appliedPromo.code} (-${appliedPromo.discountPct}% / -$${appliedPromo.discountUSD.toFixed(2)})`
           : "";
-        const text =
-          `🛒 <b>Новая заявка на заказ</b> #${order.id}\n` +
-          `👤 ${who}\n` +
-          `💰 $${order.totalUSD.toFixed(2)}${cryptoLine}\n` +
-          `📦 позиций: ${itemsCount}` +
-          (itemsLines ? `\n${itemsLines}` : "") +
-          (order.delivery ? `\n🚚 доставка: ${order.deliveryAddress ?? "—"}` : "") +
-          promoLine;
-        notifyOrdersChat(text).catch((err) =>
+        notifyOrdersChat(buildNewOrderNotification(order, user, promoLine)).catch((err) =>
           req.log.error({ err }, "notifyOrdersChat failed for new order")
         );
       } catch (err) {
