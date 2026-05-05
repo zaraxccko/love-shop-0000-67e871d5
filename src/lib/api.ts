@@ -97,6 +97,7 @@ export interface MeUser {
   citySlug?: string | null;
   balanceUSD: number;
   isAdmin: boolean;
+  isModerator?: boolean;
 }
 
 export const Auth = {
