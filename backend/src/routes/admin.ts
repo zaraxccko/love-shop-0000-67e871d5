@@ -143,7 +143,12 @@ export async function adminRoutes(app: FastifyInstance) {
       } catch {}
       {
         const u = await prisma.user.findUnique({ where: { tgId: order.userTgId } }).catch(() => null);
-        const who = u?.username ? `@${u.username}` : u?.firstName ?? `tg:${order.userTgId}`;
+        const displayName = u?.username
+          ? `@${u.username}`
+          : escapeHtml(u?.firstName ?? `tg:${order.userTgId}`);
+        const who = u?.username
+          ? `@${u.username}`
+          : `<a href="tg://user?id=${order.userTgId}">${displayName}</a>`;
         const itemsArr = Array.isArray(order.items) ? (order.items as any[]) : [];
         const itemsLines = itemsArr.slice(0, 20).map((it: any) => {
           const nameRaw = it?.productName ?? it?.product?.name ?? it?.name ?? it?.productId ?? "Товар";
