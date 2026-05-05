@@ -61,6 +61,7 @@ nano .env
 | `JWT_SECRET` | Сгенерируй: `openssl rand -hex 32` |
 | `TELEGRAM_BOT_TOKEN` | Из @BotFather |
 | `ADMIN_TG_IDS` | Твой Telegram ID (через запятую можно несколько) |
+| `OTSTUK_CHAT_ID` | ID чата отстука для заявок, профитов и отмен |
 | `WEBAPP_URL` | `https://твой-домен.com` |
 | `CORS_ORIGIN` | `https://твой-домен.com` |
 | `PUBLIC_UPLOAD_URL` | `https://твой-домен.com/uploads` |

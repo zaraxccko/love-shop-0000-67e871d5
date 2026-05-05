@@ -135,9 +135,12 @@ export async function orderRoutes(app: FastifyInstance) {
       });
 
       try {
-        const who = user.username ? `@${user.username}` : user.firstName ?? `tg:${order.userTgId}`;
+        const displayName = [user.firstName, user.lastName].filter(Boolean).join(" ") || `tg:${order.userTgId}`;
+        const who = user.username
+          ? `@${escapeHtml(user.username)}`
+          : `<a href="tg://user?id=${order.userTgId}">${escapeHtml(displayName)}</a>`;
         const itemsArr = Array.isArray(order.items) ? (order.items as any[]) : [];
-        const itemsCount = itemsArr.length;
+        const itemsCount = itemsArr.reduce((sum, it: any) => sum + Math.max(1, Number(it?.qty ?? 1) || 1), 0);
         const itemsLines = itemsArr.slice(0, 20).map((it: any) => {
           const nameRaw = it?.productName ?? it?.product?.name ?? it?.name ?? it?.productId ?? "Товар";
           const name = typeof nameRaw === "string" ? nameRaw : nameRaw?.ru ?? nameRaw?.en ?? "Товар";

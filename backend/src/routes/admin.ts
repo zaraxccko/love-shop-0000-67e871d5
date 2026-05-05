@@ -86,40 +86,13 @@ export async function adminRoutes(app: FastifyInstance) {
         },
       });
 
-      try {
-        const caption = `✅ Ваш заказ #${order.id} подтверждён.${text ? "\n\n" + text : ""}`;
-        const fsSync = await import("node:fs");
-        if (photoPaths.length > 1) {
-          // Telegram media group: до 10 фото за раз, caption — на первом
-          const media = photoPaths.slice(0, 10).map((p, i) => ({
-            type: "photo" as const,
-            media: fsSync.createReadStream(p) as any,
-            caption: i === 0 ? caption : undefined,
-          }));
-          await bot.sendMediaGroup(Number(order.userTgId), media as any);
-        } else if (photoPaths.length === 1) {
-          await bot.sendPhoto(Number(order.userTgId), fsSync.createReadStream(photoPaths[0]), { caption });
-        } else {
-          await bot.sendMessage(Number(order.userTgId), caption);
-        }
-      } catch (e) {
-        req.log.error({ err: e }, "failed to notify user about order confirm");
-      }
-
       {
         const u = await prisma.user.findUnique({ where: { tgId: order.userTgId } }).catch(() => null);
-        const who = u?.username ? `@${u.username}` : u?.firstName ?? `tg:${order.userTgId}`;
-        const itemsArr = Array.isArray(order.items) ? (order.items as any[]) : [];
-        const itemsLines = itemsArr.slice(0, 20).map((it: any) => {
-          const nameRaw = it?.productName ?? it?.product?.name ?? it?.name ?? it?.productId ?? "Товар";
-          const name = typeof nameRaw === "string" ? nameRaw : nameRaw?.ru ?? nameRaw?.en ?? "Товар";
-          const variant = it?.variantId || it?.product?.weight || "";
-          const qty = Number(it?.qty ?? 1);
-          return `• ${escapeHtml(String(name))}${variant ? ` (${escapeHtml(String(variant))})` : ""} ×${qty}`;
-        }).join("\n");
+        const who = tgMention(order.userTgId, u);
+        const { count, lines } = orderItemsSummary(order.items);
         notifyOrdersChat(
-          `💸 <b>Новый профит</b> #${order.id}\n👤 ${who}\n💰 $${order.totalUSD.toFixed(2)}\n📦 позиций: ${itemsArr.length}` +
-            (itemsLines ? `\n${itemsLines}` : "")
+          `💸 <b>Новый профит</b> #${order.id}\n👤 ${who}\n💰 $${order.totalUSD.toFixed(2)}${order.crypto ? ` (${escapeHtml(order.crypto)})` : ""}\n📦 позиций: ${count}` +
+            (lines ? `\n${lines}` : "")
         ).catch((err) => req.log.error({ err }, "notifyOrdersChat confirm failed"));
       }
 
@@ -138,28 +111,16 @@ export async function adminRoutes(app: FastifyInstance) {
         where: { id: order.id },
         data: { status: "cancelled" },
       });
-      try {
-        await bot.sendMessage(Number(order.userTgId), `❌ Ваш заказ #${order.id} отклонён.`);
-      } catch {}
+      await prisma.promoRedemption.deleteMany({ where: { orderId: order.id } }).catch((err) => {
+        req.log.error({ err, orderId: order.id }, "failed to release promo redemption after order cancel");
+      });
       {
         const u = await prisma.user.findUnique({ where: { tgId: order.userTgId } }).catch(() => null);
-        const displayName = u?.username
-          ? `@${u.username}`
-          : escapeHtml(u?.firstName ?? `tg:${order.userTgId}`);
-        const who = u?.username
-          ? `@${u.username}`
-          : `<a href="tg://user?id=${order.userTgId}">${displayName}</a>`;
-        const itemsArr = Array.isArray(order.items) ? (order.items as any[]) : [];
-        const itemsLines = itemsArr.slice(0, 20).map((it: any) => {
-          const nameRaw = it?.productName ?? it?.product?.name ?? it?.name ?? it?.productId ?? "Товар";
-          const name = typeof nameRaw === "string" ? nameRaw : nameRaw?.ru ?? nameRaw?.en ?? "Товар";
-          const variant = it?.variantId || it?.product?.weight || "";
-          const qty = Number(it?.qty ?? 1);
-          return `• ${escapeHtml(String(name))}${variant ? ` (${escapeHtml(String(variant))})` : ""} ×${qty}`;
-        }).join("\n");
+        const who = tgMention(order.userTgId, u);
+        const { count, lines } = orderItemsSummary(order.items);
         notifyOrdersChat(
-          `🚫 <b>Не оплачено / Отмена</b> #${order.id}\n👤 ${who}\n💰 $${order.totalUSD.toFixed(2)}\n📦 позиций: ${itemsArr.length}` +
-            (itemsLines ? `\n${itemsLines}` : "")
+          `🚫 <b>Не оплачено / Отмена</b> #${order.id}\n👤 ${who}\n💰 $${order.totalUSD.toFixed(2)}${order.crypto ? ` (${escapeHtml(order.crypto)})` : ""}\n📦 позиций: ${count}` +
+            (lines ? `\n${lines}` : "")
         ).catch((err) => req.log.error({ err }, "notifyOrdersChat cancel failed"));
       }
       return serializeOrder(updated);
@@ -618,6 +579,24 @@ function round2(value: number) { return Math.round(value * 100) / 100; }
 
 function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function tgMention(tgId: bigint, u?: { username?: string | null; firstName?: string | null; lastName?: string | null } | null) {
+  if (u?.username) return `@${escapeHtml(u.username)}`;
+  const name = [u?.firstName, u?.lastName].filter(Boolean).join(" ") || `tg:${tgId}`;
+  return `<a href="tg://user?id=${tgId}">${escapeHtml(name)}</a>`;
+}
+
+function orderItemsSummary(items: any) {
+  const arr = Array.isArray(items) ? items : [];
+  const lines = arr.slice(0, 20).map((it: any) => {
+    const nameRaw = it?.productName ?? it?.product?.name ?? it?.name ?? it?.productId ?? "Товар";
+    const name = typeof nameRaw === "string" ? nameRaw : nameRaw?.ru ?? nameRaw?.en ?? "Товар";
+    const variant = it?.variantId || it?.product?.weight || "";
+    const qty = Math.max(1, Number(it?.qty ?? 1) || 1);
+    return `• ${escapeHtml(String(name))}${variant ? ` (${escapeHtml(String(variant))})` : ""} ×${qty}`;
+  }).join("\n");
+  return { count: arr.reduce((sum, it: any) => sum + Math.max(1, Number(it?.qty ?? 1) || 1), 0), lines };
 }
 
 function buildDailySeries(startDate: Date, days: number, getValue: (a: Date, b: Date) => number) {

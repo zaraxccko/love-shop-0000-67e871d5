@@ -51,7 +51,6 @@ export const OrderPaymentPage = ({ onBack, onPaid }: OrderPaymentPageProps) => {
 
   const addOrder = useAccount((s) => s.addOrder);
   const hydrateAccount = useAccount((s) => s.hydrate);
-  const hasAwaitingOrder = useAccount((s) => s.orders.some((o) => o.status === "awaiting"));
   const { user } = useTelegram();
 
   const [crypto, setCrypto] = useState<CryptoCode>("USDT");

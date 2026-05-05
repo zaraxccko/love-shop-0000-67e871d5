@@ -44,6 +44,7 @@ nano .env
 - `JWT_SECRET` — `openssl rand -hex 32`
 - `TELEGRAM_BOT_TOKEN` — от @BotFather
 - `ADMIN_TG_IDS` — твой Telegram ID (через запятую если несколько)
+- `OTSTUK_CHAT_ID` — ID чата отстука для заявок, профитов и отмен
 - `WEBAPP_URL` — `https://your-domain.com` (где будет фронт)
 - `CORS_ORIGIN` — `https://your-domain.com`
 - `PUBLIC_UPLOAD_URL` — `https://your-domain.com/uploads`
