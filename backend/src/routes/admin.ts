@@ -611,6 +611,10 @@ function customerOf(u: any) {
 
 function round2(value: number) { return Math.round(value * 100) / 100; }
 
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 function buildDailySeries(startDate: Date, days: number, getValue: (a: Date, b: Date) => number) {
   return Array.from({ length: days }, (_, i) => {
     const a = new Date(startDate); a.setDate(startDate.getDate() + i); a.setHours(0, 0, 0, 0);
