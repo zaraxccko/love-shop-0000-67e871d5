@@ -67,7 +67,7 @@ export function buildCancelNotification(order: OrderNotificationOrder, user?: Or
   const who = tgMention(order.userTgId, user);
   const { count, lines } = orderItemsSummary(order.items);
   return (
-    `🚫 <b>Не оплачено / Отмена</b> #${order.id}\n` +
+    `🚫 <b>Не оплачено/отмена</b> #${order.id}\n` +
     `👤 ${who}\n` +
     `💰 $${order.totalUSD.toFixed(2)}${order.crypto ? ` (${escapeHtml(order.crypto)})` : ""}\n` +
     `📦 позиций: ${count}` +
