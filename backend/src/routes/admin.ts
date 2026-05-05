@@ -111,6 +111,9 @@ export async function adminRoutes(app: FastifyInstance) {
         where: { id: order.id },
         data: { status: "cancelled" },
       });
+      await prisma.promoRedemption.deleteMany({ where: { orderId: order.id } }).catch((err) => {
+        req.log.error({ err, orderId: order.id }, "failed to release promo redemption after order cancel");
+      });
       {
         const u = await prisma.user.findUnique({ where: { tgId: order.userTgId } }).catch(() => null);
         const who = tgMention(order.userTgId, u);
