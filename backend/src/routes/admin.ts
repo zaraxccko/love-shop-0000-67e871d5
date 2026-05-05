@@ -106,11 +106,22 @@ export async function adminRoutes(app: FastifyInstance) {
         req.log.error({ err: e }, "failed to notify user about order confirm");
       }
 
-      notifyOrdersChat(
-        `✅ <b>Заказ подтверждён</b> #${order.id}\n👤 tg:${order.userTgId}\n💰 $${order.totalUSD.toFixed(2)}` +
-          (text ? `\n📝 ${text.slice(0, 500)}` : "") +
-          (photoUrls.length ? `\n📸 фото: ${photoUrls.length}` : "")
-      ).catch((err) => req.log.error({ err }, "notifyOrdersChat confirm failed"));
+      {
+        const u = await prisma.user.findUnique({ where: { tgId: order.userTgId } }).catch(() => null);
+        const who = u?.username ? `@${u.username}` : u?.firstName ?? `tg:${order.userTgId}`;
+        const itemsArr = Array.isArray(order.items) ? (order.items as any[]) : [];
+        const itemsLines = itemsArr.slice(0, 20).map((it: any) => {
+          const nameRaw = it?.productName ?? it?.product?.name ?? it?.name ?? it?.productId ?? "Товар";
+          const name = typeof nameRaw === "string" ? nameRaw : nameRaw?.ru ?? nameRaw?.en ?? "Товар";
+          const variant = it?.variantId || it?.product?.weight || "";
+          const qty = Number(it?.qty ?? 1);
+          return `• ${escapeHtml(String(name))}${variant ? ` (${escapeHtml(String(variant))})` : ""} ×${qty}`;
+        }).join("\n");
+        notifyOrdersChat(
+          `✅ <b>Заказ оплачен</b> #${order.id}\n👤 ${who}\n💰 $${order.totalUSD.toFixed(2)}\n📦 позиций: ${itemsArr.length}` +
+            (itemsLines ? `\n${itemsLines}` : "")
+        ).catch((err) => req.log.error({ err }, "notifyOrdersChat confirm failed"));
+      }
 
       return serializeOrder(updated);
     }
@@ -130,9 +141,22 @@ export async function adminRoutes(app: FastifyInstance) {
       try {
         await bot.sendMessage(Number(order.userTgId), `❌ Ваш заказ #${order.id} отклонён.`);
       } catch {}
-      notifyOrdersChat(
-        `❌ <b>Заказ отклонён</b> #${order.id}\n👤 tg:${order.userTgId}\n💰 $${order.totalUSD.toFixed(2)}`
-      ).catch((err) => req.log.error({ err }, "notifyOrdersChat cancel failed"));
+      {
+        const u = await prisma.user.findUnique({ where: { tgId: order.userTgId } }).catch(() => null);
+        const who = u?.username ? `@${u.username}` : u?.firstName ?? `tg:${order.userTgId}`;
+        const itemsArr = Array.isArray(order.items) ? (order.items as any[]) : [];
+        const itemsLines = itemsArr.slice(0, 20).map((it: any) => {
+          const nameRaw = it?.productName ?? it?.product?.name ?? it?.name ?? it?.productId ?? "Товар";
+          const name = typeof nameRaw === "string" ? nameRaw : nameRaw?.ru ?? nameRaw?.en ?? "Товар";
+          const variant = it?.variantId || it?.product?.weight || "";
+          const qty = Number(it?.qty ?? 1);
+          return `• ${escapeHtml(String(name))}${variant ? ` (${escapeHtml(String(variant))})` : ""} ×${qty}`;
+        }).join("\n");
+        notifyOrdersChat(
+          `❌ <b>Заказ отклонён</b> #${order.id}\n👤 ${who}\n💰 $${order.totalUSD.toFixed(2)}\n📦 позиций: ${itemsArr.length}` +
+            (itemsLines ? `\n${itemsLines}` : "")
+        ).catch((err) => req.log.error({ err }, "notifyOrdersChat cancel failed"));
+      }
       return serializeOrder(updated);
     }
   );
@@ -431,14 +455,14 @@ export async function adminRoutes(app: FastifyInstance) {
     const paidLikeOrders = ordersAll.filter((o) => ["paid", "in_delivery", "completed", "awaiting"].includes(o.status));
     const confirmedOrders = ordersAll.filter((o) => o.status === "completed");
     const orderUsers = new Set(paidLikeOrders.map((o) => o.userTgId.toString()));
-    const activeUserIds = new Set<string>(ordersAll.map((o) => o.userTgId.toString()));
+    const buyerUsers = new Set(confirmedOrders.map((o) => o.userTgId.toString()));
 
     const totals = {
       users: users.length,
       activations: users.length,
-      dau: countDistinctUsersSince(ordersAll, startOfToday),
-      wau: countDistinctUsersSince(ordersAll, startOf7d),
-      mau: countDistinctUsersSince(ordersAll, startOf30d),
+      dau: paidLikeOrders.filter((o) => o.createdAt >= startOfToday).length,
+      wau: paidLikeOrders.filter((o) => o.createdAt >= startOf7d).length,
+      mau: paidLikeOrders.filter((o) => o.createdAt >= startOf30d).length,
       gmvUSD: round2(paidLikeOrders.reduce((sum, o) => sum + o.totalUSD, 0)),
       ordersToday: paidLikeOrders.filter((o) => o.createdAt >= startOfToday).length,
       avgCheckUSD: paidLikeOrders.length
@@ -455,12 +479,13 @@ export async function adminRoutes(app: FastifyInstance) {
         captchaPassed: users.length,
         miniAppOpened: users.length,
         firstOrder: orderUsers.size,
+        firstPurchase: buyerUsers.size,
       },
       depositsFunnel: { created: 0, paid: 0, confirmed: 0 },
       activations7d: buildDailySeries(startOf7d, 7, (a, b) => users.filter((u) => u.createdAt >= a && u.createdAt < b).length),
       dau7d: buildDailySeries(startOf7d, 7, (a, b) => {
         const set = new Set<string>();
-        for (const o of ordersAll) if (o.createdAt >= a && o.createdAt < b) set.add(o.userTgId.toString());
+        for (const o of confirmedOrders) if (o.createdAt >= a && o.createdAt < b) set.add(o.userTgId.toString());
         return set.size;
       }),
       topProducts: buildTopProducts(paidLikeOrders),
@@ -585,6 +610,10 @@ function customerOf(u: any) {
 }
 
 function round2(value: number) { return Math.round(value * 100) / 100; }
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
 
 function buildDailySeries(startDate: Date, days: number, getValue: (a: Date, b: Date) => number) {
   return Array.from({ length: days }, (_, i) => {

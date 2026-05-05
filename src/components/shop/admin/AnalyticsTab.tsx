@@ -237,12 +237,9 @@ export const AnalyticsTab = ({ readOnly = false }: { readOnly?: boolean } = {}) 
     <TabsContent value="analytics" className="space-y-4 mt-4">
       {/* KPI grid */}
       <div className="grid grid-cols-2 gap-2">
-        <KPI icon={Users} label="Юзеров" value={a.totals.users.toLocaleString("ru")} hint="всего" />
-        <KPI icon={Activity} label="Активаций" value={a.totals.activations.toLocaleString("ru")} hint="/start всего" />
-        <KPI icon={Users} label="Активных за день" value={a.totals.dau.toString()} hint="за сегодня" />
-        <KPI icon={Users} label="Активных за месяц" value={a.totals.mau.toLocaleString("ru")} hint="за месяц" />
-        
-        <KPI icon={ShoppingBag} label="Заказов" value={a.totals.ordersToday.toString()} hint="сегодня" />
+        <KPI icon={Users} label="Юзеров" value={a.totals.users.toLocaleString("ru")} hint="открыли Mini App" />
+        <KPI icon={ShoppingBag} label="Заявок сегодня" value={a.totals.ordersToday.toString()} hint="на оплату" />
+        <KPI icon={ShoppingBag} label="Заявок за месяц" value={a.totals.mau.toLocaleString("ru")} hint="на оплату" />
         <KPI icon={ShoppingBag} label="Покупок" value={a.totals.purchasesCount.toLocaleString("ru")} hint="подтверждено" />
         <KPI icon={DollarSign} label="Сумма покупок" value={`$${a.totals.purchasesUSD.toLocaleString("ru")}`} hint="подтверждено" />
       </div>
@@ -251,7 +248,7 @@ export const AnalyticsTab = ({ readOnly = false }: { readOnly?: boolean } = {}) 
       <div className="bg-card rounded-2xl shadow-card p-4 space-y-3">
         <div className="flex items-center justify-between">
           <div className="font-bold text-sm flex items-center gap-1.5">
-            <TrendingUp className="w-4 h-4 text-primary" /> Активации (7д)
+            <TrendingUp className="w-4 h-4 text-primary" /> Открыли Mini App (7д)
           </div>
           <span className="text-xs text-muted-foreground">
             +{a.activations7d[a.activations7d.length - 1].value}
@@ -267,7 +264,7 @@ export const AnalyticsTab = ({ readOnly = false }: { readOnly?: boolean } = {}) 
 
       <div className="bg-card rounded-2xl shadow-card p-4 space-y-3">
         <div className="font-bold text-sm flex items-center gap-1.5">
-          <Users className="w-4 h-4 text-primary" /> Активные пользователи в день (7д)
+          <Users className="w-4 h-4 text-primary" /> Покупатели (7д)
         </div>
         <Sparkline data={a.dau7d} />
         <div className="flex justify-between text-[10px] text-muted-foreground">
@@ -280,10 +277,9 @@ export const AnalyticsTab = ({ readOnly = false }: { readOnly?: boolean } = {}) 
       {/* Funnel */}
       <div className="bg-card rounded-2xl shadow-card p-4 space-y-3">
         <div className="font-bold text-sm">Воронка онбординга</div>
-        <FunnelRow label="/start" value={a.funnel.starts} total={a.funnel.starts} />
-        <FunnelRow label="Прошли капчу" value={a.funnel.captchaPassed} total={a.funnel.starts} />
-        <FunnelRow label="Открыли Mini App" value={a.funnel.miniAppOpened} total={a.funnel.starts} />
-        <FunnelRow label="Сделали 1-й заказ" value={a.funnel.firstOrder} total={a.funnel.starts} />
+        <FunnelRow label="Открыли Mini App" value={a.funnel.miniAppOpened} total={a.funnel.miniAppOpened} />
+        <FunnelRow label="Сделали заказ" value={a.funnel.firstOrder} total={a.funnel.miniAppOpened} />
+        <FunnelRow label="Сделали покупку" value={a.funnel.firstPurchase ?? 0} total={a.funnel.miniAppOpened} />
       </div>
 
       {/* Users list */}

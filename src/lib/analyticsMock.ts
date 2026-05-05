@@ -26,6 +26,7 @@ export interface AnalyticsSnapshot {
     captchaPassed: number;
     miniAppOpened: number;
     firstOrder: number;
+    firstPurchase?: number;
   };
   depositsFunnel: {
     created: number;
