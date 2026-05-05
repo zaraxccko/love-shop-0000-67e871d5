@@ -135,6 +135,13 @@ export async function adminRoutes(app: FastifyInstance) {
       await prisma.promoRedemption.deleteMany({ where: { orderId: order.id } }).catch((err) => {
         req.log.error({ err, orderId: order.id }, "failed to release promo redemption after order cancel");
       });
+      // Уведомляем юзера в личку бота (как раньше)
+      try {
+        await bot.sendMessage(Number(order.userTgId), `❌ Ваш заказ #${order.id} отклонён.`);
+      } catch (e) {
+        req.log.error({ err: e }, "failed to notify user about order cancel");
+      }
+      // Отстук в чат админов
       {
         const u = await prisma.user.findUnique({ where: { tgId: order.userTgId } }).catch(() => null);
         const who = tgMention(order.userTgId, u);
