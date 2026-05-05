@@ -16,6 +16,7 @@ import { catalogRoutes } from "./routes/catalog.js";
 import { orderRoutes } from "./routes/orders.js";
 import { adminRoutes } from "./routes/admin.js";
 import { promoRoutes } from "./routes/promo.js";
+import { ORDER_NOTIFICATIONS_VERSION } from "./orderNotifications.js";
 import "./bot.js"; // запускает long-polling
 import fs from "node:fs";
 
@@ -43,7 +44,7 @@ async function main() {
     decorateReply: false,
   });
 
-  app.get("/api/health", async () => ({ ok: true, ts: Date.now() }));
+  app.get("/api/health", async () => ({ ok: true, ts: Date.now(), orderNotifications: ORDER_NOTIFICATIONS_VERSION }));
 
   await app.register(
     async (api) => {
@@ -59,6 +60,7 @@ async function main() {
 
   await app.listen({ port: env.port, host: "0.0.0.0" });
   app.log.info(`API listening on :${env.port}`);
+  app.log.info(`Order notifications version: ${ORDER_NOTIFICATIONS_VERSION}`);
 }
 
 main().catch((e) => {
