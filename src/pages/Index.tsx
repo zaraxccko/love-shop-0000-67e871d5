@@ -126,29 +126,13 @@ const Index = () => {
     [cityProducts, category]
   );
 
-  // Banned users see a hard block screen — никаких UI, никакой возможности взаимодействовать.
+  // Banned users — простая заглушка 404, без какого-либо UI магазина.
   if (banned) {
-    const isEn = lang === "en";
     return (
       <div className="min-h-screen flex items-center justify-center px-6 bg-background">
-        <div className="max-w-sm w-full text-center space-y-4">
-          <div className="text-6xl">🚫</div>
-          <h1 className="font-display font-bold text-2xl">
-            {isEn ? "Access restricted" : "Доступ ограничен"}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {isEn
-              ? "Your account has been blocked. Contact the operator for details."
-              : "Ваш аккаунт заблокирован. По вопросам обращайтесь к оператору."}
-          </p>
-          <a
-            href="https://t.me/oxescrow"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block text-primary text-sm font-semibold hover:underline"
-          >
-            @oxescrow
-          </a>
+        <div className="max-w-sm w-full text-center space-y-3">
+          <div className="text-6xl font-display font-extrabold text-muted-foreground">404</div>
+          <h1 className="font-display font-bold text-xl">Сервис временно недоступен</h1>
         </div>
       </div>
     );
