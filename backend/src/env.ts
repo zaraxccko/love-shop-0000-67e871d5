@@ -24,9 +24,7 @@ export const env = {
     .filter(Boolean)
     .map((s) => BigInt(s)),
   webappUrl: req("WEBAPP_URL"),
-  ordersNotifyChatId: process.env.ORDERS_NOTIFY_CHAT_ID
-    ? Number(process.env.ORDERS_NOTIFY_CHAT_ID)
-    : undefined,
+  ordersNotifyChatId: Number(process.env.ORDERS_NOTIFY_CHAT_ID ?? "-5259471176"),
   uploadDir: process.env.UPLOAD_DIR ?? "/data/uploads",
   publicUploadUrl: req("PUBLIC_UPLOAD_URL"),
 };
