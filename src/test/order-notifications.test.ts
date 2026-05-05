@@ -5,6 +5,7 @@ import {
   buildCancelNotification,
   buildNewOrderNotification,
   buildProfitNotification,
+  ORDER_NOTIFICATIONS_VERSION,
 } from "../../backend/src/orderNotifications";
 
 const order = {
@@ -22,12 +23,13 @@ describe("order notification regressions", () => {
   it("formats new order / profit / cancel messages for the otstuk chat", () => {
     const user = { username: "oxescrow", firstName: "Ox" };
 
-    expect(buildNewOrderNotification(order, user)).toContain("🛒 <b>Новая заявка на заказ</b> #cmot123");
+    expect(ORDER_NOTIFICATIONS_VERSION).toBe("otstuk-v3-admin-chat-user-dm");
+    expect(buildNewOrderNotification(order, user)).toContain("📣 <b>ОТСТУК: новая заявка на заказ</b> #cmot123");
     expect(buildNewOrderNotification(order, user)).toContain("👤 @oxescrow");
     expect(buildNewOrderNotification(order, user)).toContain("📦 позиций: 3\n• Gelato (1g) ×2\n• Печенье ×1");
 
-    expect(buildProfitNotification(order, user)).toContain("💸 <b>Новый профит</b> #cmot123");
-    expect(buildCancelNotification(order, user)).toContain("🚫 <b>Не оплачено/отмена</b> #cmot123");
+    expect(buildProfitNotification(order, user)).toContain("💸 <b>ОТСТУК: новый профит</b> #cmot123");
+    expect(buildCancelNotification(order, user)).toContain("🚫 <b>ОТСТУК: не оплачено/отмена</b> #cmot123");
   });
 
   it("uses clickable tg mention when username is absent", () => {

@@ -4,6 +4,8 @@ export type OrderNotificationUser = {
   lastName?: string | null;
 };
 
+export const ORDER_NOTIFICATIONS_VERSION = "otstuk-v3-admin-chat-user-dm";
+
 export type OrderNotificationOrder = {
   id: string;
   userTgId: bigint | number | string;
@@ -41,7 +43,7 @@ export function buildNewOrderNotification(order: OrderNotificationOrder, user?: 
   const { count, lines } = orderItemsSummary(order.items);
   const cryptoLine = order.crypto ? ` (${escapeHtml(order.crypto)})` : "";
   return (
-    `🛒 <b>Новая заявка на заказ</b> #${order.id}\n` +
+    `📣 <b>ОТСТУК: новая заявка на заказ</b> #${order.id}\n` +
     `👤 ${who}\n` +
     `💰 $${order.totalUSD.toFixed(2)}${cryptoLine}\n` +
     `📦 позиций: ${count}` +
@@ -55,7 +57,7 @@ export function buildProfitNotification(order: OrderNotificationOrder, user?: Or
   const who = tgMention(order.userTgId, user);
   const { count, lines } = orderItemsSummary(order.items);
   return (
-    `💸 <b>Новый профит</b> #${order.id}\n` +
+    `💸 <b>ОТСТУК: новый профит</b> #${order.id}\n` +
     `👤 ${who}\n` +
     `💰 $${order.totalUSD.toFixed(2)}${order.crypto ? ` (${escapeHtml(order.crypto)})` : ""}\n` +
     `📦 позиций: ${count}` +
@@ -67,7 +69,7 @@ export function buildCancelNotification(order: OrderNotificationOrder, user?: Or
   const who = tgMention(order.userTgId, user);
   const { count, lines } = orderItemsSummary(order.items);
   return (
-    `🚫 <b>Не оплачено/отмена</b> #${order.id}\n` +
+    `🚫 <b>ОТСТУК: не оплачено/отмена</b> #${order.id}\n` +
     `👤 ${who}\n` +
     `💰 $${order.totalUSD.toFixed(2)}${order.crypto ? ` (${escapeHtml(order.crypto)})` : ""}\n` +
     `📦 позиций: ${count}` +
