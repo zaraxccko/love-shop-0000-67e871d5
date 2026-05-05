@@ -141,9 +141,22 @@ export async function adminRoutes(app: FastifyInstance) {
       try {
         await bot.sendMessage(Number(order.userTgId), `❌ Ваш заказ #${order.id} отклонён.`);
       } catch {}
-      notifyOrdersChat(
-        `❌ <b>Заказ отклонён</b> #${order.id}\n👤 tg:${order.userTgId}\n💰 $${order.totalUSD.toFixed(2)}`
-      ).catch((err) => req.log.error({ err }, "notifyOrdersChat cancel failed"));
+      {
+        const u = await prisma.user.findUnique({ where: { tgId: order.userTgId } }).catch(() => null);
+        const who = u?.username ? `@${u.username}` : u?.firstName ?? `tg:${order.userTgId}`;
+        const itemsArr = Array.isArray(order.items) ? (order.items as any[]) : [];
+        const itemsLines = itemsArr.slice(0, 20).map((it: any) => {
+          const nameRaw = it?.productName ?? it?.product?.name ?? it?.name ?? it?.productId ?? "Товар";
+          const name = typeof nameRaw === "string" ? nameRaw : nameRaw?.ru ?? nameRaw?.en ?? "Товар";
+          const variant = it?.variantId || it?.product?.weight || "";
+          const qty = Number(it?.qty ?? 1);
+          return `• ${escapeHtml(String(name))}${variant ? ` (${escapeHtml(String(variant))})` : ""} ×${qty}`;
+        }).join("\n");
+        notifyOrdersChat(
+          `❌ <b>Заказ отклонён</b> #${order.id}\n👤 ${who}\n💰 $${order.totalUSD.toFixed(2)}\n📦 позиций: ${itemsArr.length}` +
+            (itemsLines ? `\n${itemsLines}` : "")
+        ).catch((err) => req.log.error({ err }, "notifyOrdersChat cancel failed"));
+      }
       return serializeOrder(updated);
     }
   );
