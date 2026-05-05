@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { TabsContent } from "@/components/ui/tabs";
-import { TrendingUp, Users, ShoppingBag, DollarSign, Activity, ChevronDown, Ban, ShieldCheck } from "lucide-react";
+import { TrendingUp, Users, ShoppingBag, DollarSign, Activity, ChevronDown, Ban, ShieldCheck, BadgeCheck } from "lucide-react";
 import { useAdminPanel } from "@/store/adminPanel";
 import { Admin, type AdminUser } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -18,12 +18,14 @@ const KPI = ({
   value: string;
   hint?: string;
 }) => (
-  <div className="bg-card rounded-2xl shadow-card p-3">
-    <div className="flex items-center gap-2 text-muted-foreground text-[11px] uppercase tracking-wide font-semibold">
-      <Icon className="w-3.5 h-3.5" /> {label}
+  <div className="bg-card rounded-[1.45rem] shadow-card p-5 min-h-[112px] flex flex-col justify-between">
+    <div className="flex items-center gap-2 text-muted-foreground text-[12px] uppercase font-extrabold leading-tight">
+      <Icon className="w-4 h-4 shrink-0" /> <span className="break-words">{label}</span>
     </div>
-    <div className="font-display font-extrabold text-xl mt-1">{value}</div>
-    {hint && <div className="text-[10px] text-muted-foreground mt-0.5">{hint}</div>}
+    <div>
+      <div className="font-display font-extrabold text-3xl leading-none mt-3">{value}</div>
+      {hint && <div className="text-sm text-muted-foreground mt-2 leading-snug">{hint}</div>}
+    </div>
   </div>
 );
 
@@ -234,23 +236,25 @@ export const AnalyticsTab = ({ readOnly = false }: { readOnly?: boolean } = {}) 
   }, [showUsers]);
 
   return (
-    <TabsContent value="analytics" className="space-y-4 mt-4">
+    <TabsContent value="analytics" className="space-y-7 mt-0">
       {/* KPI grid */}
-      <div className="grid grid-cols-2 gap-2">
-        <KPI icon={Users} label="Юзеров" value={a.totals.users.toLocaleString("ru")} hint="открыли Mini App" />
-        <KPI icon={ShoppingBag} label="Заявок сегодня" value={a.totals.ordersToday.toString()} hint="на оплату" />
-        <KPI icon={ShoppingBag} label="Заявок за месяц" value={a.totals.mau.toLocaleString("ru")} hint="на оплату" />
-        <KPI icon={ShoppingBag} label="Покупок" value={a.totals.purchasesCount.toLocaleString("ru")} hint="подтверждено" />
+      <div className="grid grid-cols-2 gap-4">
+        <KPI icon={Users} label="Юзеров" value={a.totals.users.toLocaleString("ru")} hint="всего" />
+        <KPI icon={Activity} label="Активаций" value={a.totals.activations.toLocaleString("ru")} hint="/start всего" />
+        <KPI icon={Users} label="Активных за день" value={a.totals.dau.toLocaleString("ru")} hint="за сегодня" />
+        <KPI icon={Users} label="Активных за месяц" value={a.totals.mau.toLocaleString("ru")} hint="за месяц" />
+        <KPI icon={ShoppingBag} label="Заказов" value={a.totals.ordersToday.toString()} hint="сегодня" />
+        <KPI icon={BadgeCheck} label="Покупок" value={a.totals.purchasesCount.toLocaleString("ru")} hint="подтверждено" />
         <KPI icon={DollarSign} label="Сумма покупок" value={`$${a.totals.purchasesUSD.toLocaleString("ru")}`} hint="подтверждено" />
       </div>
 
       {/* Sparklines */}
-      <div className="bg-card rounded-2xl shadow-card p-4 space-y-3">
+      <div className="bg-card rounded-[1.45rem] shadow-card p-5 space-y-5">
         <div className="flex items-center justify-between">
-          <div className="font-bold text-sm flex items-center gap-1.5">
-            <TrendingUp className="w-4 h-4 text-primary" /> Открыли Mini App (7д)
+          <div className="font-display font-extrabold text-xl flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-primary" /> Активации (7д)
           </div>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-base text-muted-foreground">
             +{a.activations7d[a.activations7d.length - 1].value}
           </span>
         </div>
