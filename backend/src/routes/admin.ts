@@ -110,7 +110,7 @@ export async function adminRoutes(app: FastifyInstance) {
       // Отстук в чат админов
       {
         const u = await prisma.user.findUnique({ where: { tgId: order.userTgId } }).catch(() => null);
-        notifyOrdersChat(buildProfitNotification(order, u)).catch((err) => req.log.error({ err }, "notifyOrdersChat confirm failed"));
+        await notifyOrdersChat(buildProfitNotification(order, u));
       }
 
       return serializeOrder(updated);
@@ -140,7 +140,7 @@ export async function adminRoutes(app: FastifyInstance) {
       // Отстук в чат админов
       {
         const u = await prisma.user.findUnique({ where: { tgId: order.userTgId } }).catch(() => null);
-        notifyOrdersChat(buildCancelNotification(order, u)).catch((err) => req.log.error({ err }, "notifyOrdersChat cancel failed"));
+        await notifyOrdersChat(buildCancelNotification(order, u));
       }
       return serializeOrder(updated);
     }

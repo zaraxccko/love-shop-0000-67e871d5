@@ -131,16 +131,10 @@ export async function orderRoutes(app: FastifyInstance) {
         return created;
       });
 
-      try {
-        const promoLine = appliedPromo
-          ? `\n🎟️ промокод: ${appliedPromo.code} (-${appliedPromo.discountPct}% / -$${appliedPromo.discountUSD.toFixed(2)})`
-          : "";
-        notifyOrdersChat(buildNewOrderNotification(order, user, promoLine)).catch((err) =>
-          req.log.error({ err }, "notifyOrdersChat failed for new order")
-        );
-      } catch (err) {
-        req.log.error({ err }, "failed to build admin notification");
-      }
+      const promoLine = appliedPromo
+        ? `\n🎟️ промокод: ${appliedPromo.code} (-${appliedPromo.discountPct}% / -$${appliedPromo.discountUSD.toFixed(2)})`
+        : "";
+      await notifyOrdersChat(buildNewOrderNotification(order, user, promoLine));
 
       return serialize(order);
     } catch (e: any) {
