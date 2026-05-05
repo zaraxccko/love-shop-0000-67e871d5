@@ -237,10 +237,11 @@ function welcomeText(lang: WelcomeLang, rawName: string): string {
       `\n` +
       `<b>Что внутри:</b>\n` +
       `• Только лучшие сорта и чистые кристаллы\n` +
-      `• Безопасность кладов\n` +
-      `• Доставка в течении 40-60 минут на любую позицию\n` +
+      `• Качественная упаковка кладов\n` +
+      `• Доставка в течении 40-60 минут на заказы от 3 гр (уточнять у оператора)\n` +
       `• Оплата в крипте: наша безопасность — ваша конфиденциальность\n` +
       `• Первый заказ — 15% 🎟 <code>SUMMER10</code> 🎟\n` +
+      `• Оператор: @angeI_x\n` +
       `\n` +
       `<b>🧊 Сделай свой трип незабываемым 🧊</b>`
     );
@@ -256,10 +257,11 @@ function welcomeText(lang: WelcomeLang, rawName: string): string {
     `\n` +
     `<b>What's inside:</b>\n` +
     `• Only the best varieties and pure crystals\n` +
-    `• Safety of stashes\n` +
-    `• Delivery within 40-60 minutes for any item\n` +
+    `• Quality packaging of stashes\n` +
+    `• Delivery within 40-60 minutes for orders from 3g (check with operator)\n` +
     `• Payment in crypto: our safety — your confidentiality\n` +
     `• First order — 15% off 🎟 <code>SUMMER10</code> 🎟\n` +
+    `• Operator: @angeI_x\n` +
     `\n` +
     `<b>🧊 Make your trip unforgettable 🧊</b>`
   );
