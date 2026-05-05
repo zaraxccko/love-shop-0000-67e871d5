@@ -63,6 +63,8 @@ interface CartState {
   subtotalUSD: () => number;
   totalTHB: () => number;
   linesWithGifts: () => DisplayCartLine[];
+  /** Доставка доступна только если в корзине есть позиции от 3 г и больше. */
+  canDeliver: () => boolean;
   /** Пересинхронизировать зеркало с активным городом (вызывается при смене локации). */
   _syncMirror: () => void;
 }
@@ -184,7 +186,14 @@ export const useCart = create<CartState>()(
           (s, l) => s + l.qty * (l.priceUSD ?? l.product.priceTHB ?? 0),
           0
         );
-        return sub + (get().delivery ? DELIVERY_FEE_USD : 0);
+        const canDel = get().canDeliver();
+        return sub + (get().delivery && canDel ? DELIVERY_FEE_USD : 0);
+      },
+      canDeliver: () => {
+        return get().lines.some((l) => {
+          const variant = l.product.variants?.find((v) => v.id === l.variantId);
+          return (variant?.grams ?? 0) >= 3;
+        });
       },
       linesWithGifts: () => {
         const out: DisplayCartLine[] = [];

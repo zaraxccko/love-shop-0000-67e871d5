@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Minus, Plus, Trash2, Truck, Clock } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useCart, lineKey, DELIVERY_FEE_USD } from "@/store/cart";
@@ -35,8 +35,10 @@ export const CartSheet = ({ open, onOpenChange, onCheckout }: CartSheetProps) =>
   const subtotal = useCart((s) => s.subtotalUSD());
   const delivery = useCart((s) => s.delivery);
   const toggleDelivery = useCart((s) => s.toggleDelivery);
+  const setDelivery = useCart((s) => s.setDelivery);
   const deliveryAddress = useCart((s) => s.deliveryAddress);
   const setDeliveryAddress = useCart((s) => s.setDeliveryAddress);
+  const canDeliver = useCart((s) => s.canDeliver());
   const total = useCart((s) => s.totalTHB());
   const t = useT();
   const lang = useI18n((s) => s.lang) ?? "ru";
@@ -46,7 +48,16 @@ export const CartSheet = ({ open, onOpenChange, onCheckout }: CartSheetProps) =>
   const scrollRef = useRef<HTMLDivElement>(null);
   const deliveryBtnRef = useRef<HTMLButtonElement>(null);
 
+  // Если в корзине больше нет позиций от 3 г — выключаем доставку автоматически.
+  useEffect(() => {
+    if (delivery && !canDeliver) setDelivery(false);
+  }, [delivery, canDeliver, setDelivery]);
+
   const handleToggleDelivery = () => {
+    if (!canDeliver) {
+      haptic("warning");
+      return;
+    }
     haptic("light");
     const wasOn = delivery;
     toggleDelivery();
@@ -172,11 +183,12 @@ export const CartSheet = ({ open, onOpenChange, onCheckout }: CartSheetProps) =>
                 ref={deliveryBtnRef}
                 type="button"
                 onClick={handleToggleDelivery}
+                disabled={!canDeliver}
                 className={`w-full mt-2 rounded-2xl p-3 flex items-center gap-3 active:scale-[0.99] transition-colors ${
                   delivery
                     ? "gradient-primary text-primary-foreground shadow-glow"
                     : "bg-card border border-border"
-                }`}
+                } ${!canDeliver ? "opacity-50 cursor-not-allowed active:scale-100" : ""}`}
               >
                 <div
                   className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
@@ -190,7 +202,13 @@ export const CartSheet = ({ open, onOpenChange, onCheckout }: CartSheetProps) =>
                     {lang === "ru" ? "Доставка курьером" : "Courier delivery"}
                   </div>
                   <div className={`text-[11px] ${delivery ? "opacity-80" : "text-muted-foreground"}`}>
-                    {lang === "ru" ? "Применяется ко всему заказу" : "Applied once to the whole order"}
+                    {!canDeliver
+                      ? lang === "ru"
+                        ? "Доступно от 3 г в заказе"
+                        : "Available from 3g in order"
+                      : lang === "ru"
+                        ? "Применяется ко всему заказу"
+                        : "Applied once to the whole order"}
                   </div>
                 </div>
                 <div className="font-bold text-sm">+${DELIVERY_FEE_USD}</div>

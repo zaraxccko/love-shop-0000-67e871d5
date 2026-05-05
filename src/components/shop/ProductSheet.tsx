@@ -319,8 +319,8 @@ export const ProductSheet = ({ product, onOpenChange }: ProductSheetProps) => {
                           <div className="w-full text-[10px] text-muted-foreground mt-1 inline-flex items-center gap-1">
                             <Truck className="w-3 h-3" />
                             {lang === "ru"
-                              ? `Возможна доставка +$${DELIVERY_FEE_USD} на весь заказ`
-                              : `Delivery available +$${DELIVERY_FEE_USD} per order`}
+                              ? `Возможна доставка от 3 гр +$${DELIVERY_FEE_USD} на весь заказ`
+                              : `Delivery from 3g +$${DELIVERY_FEE_USD} per order`}
                           </div>
                         </div>
                         <button
