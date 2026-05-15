@@ -161,7 +161,7 @@ async function sendOne({ chatId, text, image, button }: SendOpts): Promise<void>
 export async function broadcast(opts: {
   recipients: number[];
   text: string;
-  imageUrl?: string;
+  image?: string | Buffer;
   button?: { text: string; url: string } | null;
   onProgress?: (stats: { sent: number; failed: number; processed: number; total: number }) => void | Promise<void>;
 }): Promise<{ sent: number; failed: number }> {
@@ -173,7 +173,7 @@ export async function broadcast(opts: {
     opts.recipients.map((chatId) =>
       queue.add(async () => {
         try {
-          await sendOne({ chatId, text: opts.text, imageUrl: opts.imageUrl, button: opts.button });
+          await sendOne({ chatId, text: opts.text, image: opts.image, button: opts.button });
           sent++;
         } catch (err: any) {
           const code = err?.response?.body?.error_code ?? err?.code;
