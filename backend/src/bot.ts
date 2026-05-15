@@ -282,7 +282,7 @@ function welcomeText(lang: WelcomeLang, rawName: string): string {
       `• Доставка в течении 40-60 минут на заказы от 3 гр\n` +
       `• Оплата в крипте: наша безопасность — ваша конфиденциальность\n` +
       `• Первый заказ — 15% 🎟 <code>SUMMER10</code> 🎟\n` +
-      `• Оператор: @love_support_asia\n` +
+      `• Оператор: @angeI_x\n` +
       `\n` +
       `<b>🧊 Сделай свой трип незабываемым 🧊</b>`
     );
@@ -302,7 +302,7 @@ function welcomeText(lang: WelcomeLang, rawName: string): string {
     `• Delivery within 40-60 minutes for orders from 3g (check with operator)\n` +
     `• Payment in crypto: our safety — your confidentiality\n` +
     `• First order — 15% off 🎟 <code>SUMMER10</code> 🎟\n` +
-    `• Operator: @love_support_asia\n` +
+    `• Operator: @angeI_x\n` +
     `\n` +
     `<b>🧊 Make your trip unforgettable 🧊</b>`
   );
@@ -381,8 +381,8 @@ bot.onText(/\/start/, async (msg) => {
       await bot.sendMessage(
         msg.chat.id,
         lang === "ru"
-          ? "🚫 Доступ к Love Shop ограничен. По вопросам обращайтесь к оператору @love_support_asia."
-          : "🚫 Access to Love Shop is restricted. Contact operator @love_support_asia for details."
+          ? "🚫 Доступ к Love Shop ограничен. По вопросам обращайтесь к оператору @angeI_x."
+          : "🚫 Access to Love Shop is restricted. Contact operator @angeI_x for details."
       );
       return;
     }
