@@ -26,7 +26,7 @@ async function main() {
     logger: {
       transport: env.nodeEnv === "development" ? { target: "pino-pretty" } : undefined,
     },
-    bodyLimit: 10 * 1024 * 1024,
+    bodyLimit: 25 * 1024 * 1024,
   });
 
   await app.register(cors, {
