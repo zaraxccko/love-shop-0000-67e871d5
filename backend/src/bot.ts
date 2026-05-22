@@ -303,6 +303,7 @@ function welcomeText(lang: WelcomeLang, rawName: string): string {
     `• Delivery within 40-60 minutes for orders from 3g (check with operator)\n` +
     `• Payment in crypto: our safety — your confidentiality\n` +
     `• First order — 15% off 🎟 <code>SUMMER10</code> 🎟\n` +
+    `• Promo 2g — 1 free active in this order 🍭\n` +
     `• Operator: @angeI_x\n` +
     `\n` +
     `<b>🧊 Make your trip unforgettable 🧊</b>`
