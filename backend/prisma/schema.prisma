@@ -20,6 +20,7 @@ model User {
   balanceUSD  Float    @default(0) @map("balance_usd")
   isAdmin     Boolean  @default(false) @map("is_admin")
   isBanned    Boolean  @default(false) @map("is_banned")
+  botBlocked  Boolean  @default(false) @map("bot_blocked")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
