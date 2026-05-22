@@ -55,7 +55,7 @@ export const useLocationPromos = create<LocationPromosState>()(
     }),
     {
       name: "loveshop-location-promos",
-      version: 2,
+      version: 3,
       migrate: () => ({ promos: {} }),
     }
   )
