@@ -650,6 +650,7 @@ export async function adminRoutes(app: FastifyInstance) {
       total: log.totalCount,
       sent: log.sentCount,
       failed: log.failedCount,
+      breakdown: log.failureBreakdown ?? null,
       error: log.error,
       createdAt: log.createdAt,
       finishedAt: log.finishedAt,
