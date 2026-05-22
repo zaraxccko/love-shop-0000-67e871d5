@@ -97,8 +97,17 @@ export const BroadcastTab = () => {
         }
         if (status.status === "completed") {
           haptic("success");
+          const b = status.breakdown ?? {};
+          const parts: string[] = [];
+          if (b.blocked) parts.push(`🚫 заблокировали бота: ${b.blocked}`);
+          if (b.deactivated) parts.push(`👻 аккаунт удалён: ${b.deactivated}`);
+          if (b.not_found) parts.push(`❓ чат не найден: ${b.not_found}`);
+          if (b.rate_limit) parts.push(`⏱ rate limit: ${b.rate_limit}`);
+          if (b.other) parts.push(`⚠️ прочие: ${b.other}`);
           toast.success(
-            `Готово · отправлено ${status.sent.toLocaleString("ru")} из ${status.total.toLocaleString("ru")}, ошибок ${status.failed.toLocaleString("ru")}`
+            `Готово · отправлено ${status.sent.toLocaleString("ru")} из ${status.total.toLocaleString("ru")}` +
+              (status.failed ? `, ошибок ${status.failed.toLocaleString("ru")}` : ""),
+            parts.length ? { description: parts.join(" · "), duration: 12000 } : undefined
           );
           break;
         }
