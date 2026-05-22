@@ -162,7 +162,10 @@ export const Admin = {
     api<{ users: AdminUser[]; total: number }>(`/admin/users?limit=${limit}&offset=${offset}`),
   banUser: (tgId: string, banned: boolean) =>
     api<{ tgId: string; isBanned: boolean }>(`/admin/users/${tgId}/ban`, { method: "POST", body: { banned } }),
-  broadcast: (payload: any) => api("/broadcast", { method: "POST", body: payload }),
+  broadcast: (payload: any) =>
+    api<{ logId: string; queued: number; status: string }>("/broadcast", { method: "POST", body: payload }),
+  broadcastStatus: (id: string) =>
+    api<{ id: string; status: "processing" | "completed" | "failed"; total: number; sent: number; failed: number; error?: string | null }>(`/admin/broadcast/${id}`),
   promoList: () => api<Array<{ id: string; code: string; discountPct: number; active: boolean; createdAt: string; redemptions: number }>>("/admin/promo"),
   promoCreate: (payload: { code: string; discountPct: number; active?: boolean }) =>
     api<{ id: string; code: string; discountPct: number; active: boolean }>("/admin/promo", { method: "POST", body: payload }),
