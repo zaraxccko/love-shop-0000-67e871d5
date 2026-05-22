@@ -172,14 +172,18 @@ model PromoRedemption {
 }
 
 model BroadcastLog {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   segment     String
   text        String
-  imageUrl    String?  @map("image_url")
+  imageUrl    String?   @map("image_url")
   button      Json?
-  sentCount   Int      @default(0) @map("sent_count")
-  failedCount Int      @default(0) @map("failed_count")
-  createdAt   DateTime @default(now()) @map("created_at")
+  totalCount  Int       @default(0) @map("total_count")
+  sentCount   Int       @default(0) @map("sent_count")
+  failedCount Int       @default(0) @map("failed_count")
+  status      String    @default("processing")
+  error       String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  finishedAt  DateTime? @map("finished_at")
 
   @@map("broadcast_log")
 }
