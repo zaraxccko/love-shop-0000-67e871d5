@@ -405,6 +405,8 @@ async function rememberTelegramUser(from?: TelegramFrom): Promise<void> {
       lastName: from.last_name,
       lang: from.language_code === "en" ? "en" : "ru",
       isAdmin: env.adminTgIds.some((id) => id === tgId),
+      // Любое взаимодействие с ботом = чат снова доступен, снимаем флаг.
+      botBlocked: false,
     },
   });
 }
