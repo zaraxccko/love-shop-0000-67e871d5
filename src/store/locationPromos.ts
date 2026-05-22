@@ -72,8 +72,18 @@ export const getPromoGiftGrams = (citySlug: string | null | undefined, boughtGra
   return 0;
 };
 
-export const findGiftVariant = (product: Product, giftGrams: number) =>
-  product.variants?.find((v) => v.grams === giftGrams || v.id === `${giftGrams}g`);
+export const findGiftVariant = (product: Product, giftGrams: number) => {
+  const exact = product.variants?.find((v) => v.grams === giftGrams || v.id === `${giftGrams}g`);
+  if (exact) return exact;
+  // Synthesise a virtual gift variant when the product has no matching SKU —
+  // the gift is free and is only used for display / cart-line purposes.
+  return {
+    id: `${giftGrams}g`,
+    grams: giftGrams,
+    pricesByCountry: {},
+    stashes: [],
+  } as NonNullable<Product["variants"]>[number];
+};
 
 /** Список всех стран — удобно для админки. */
 export const ALL_COUNTRY_SLUGS = COUNTRIES.map((c) => c.slug);
