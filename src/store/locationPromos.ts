@@ -12,7 +12,7 @@ export interface CountryPromo {
   giftFor10: number;
 }
 
-const DEFAULT_PROMO: CountryPromo = { giftFor2: 1, giftFor5: 0, giftFor10: 0 };
+const DEFAULT_PROMO: CountryPromo = { giftFor2: 1, giftFor5: 3, giftFor10: 0 };
 
 // На всех локациях единая акция: 2g + 1g в подарок.
 const DEFAULT_BY_COUNTRY: Record<string, CountryPromo> = {};
