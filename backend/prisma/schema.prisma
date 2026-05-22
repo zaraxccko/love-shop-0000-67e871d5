@@ -184,6 +184,7 @@ model BroadcastLog {
   error       String?
   createdAt   DateTime  @default(now()) @map("created_at")
   finishedAt  DateTime? @map("finished_at")
+  failureBreakdown Json? @map("failure_breakdown")
 
   @@map("broadcast_log")
 }

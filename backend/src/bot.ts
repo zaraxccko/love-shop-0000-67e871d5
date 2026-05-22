@@ -158,17 +158,48 @@ async function sendOne({ chatId, text, image, button }: SendOpts): Promise<void>
   throw new Error("send failed after retries");
 }
 
+export type BroadcastFailureKind =
+  | "blocked"
+  | "deactivated"
+  | "not_found"
+  | "rate_limit"
+  | "other";
+
+export type BroadcastBreakdown = Record<BroadcastFailureKind, number>;
+
+function classifyFailure(err: any): BroadcastFailureKind {
+  const code = telegramCode(err);
+  const desc = telegramDescription(err).toLowerCase();
+  if (code === 403) {
+    if (desc.includes("deactivated")) return "deactivated";
+    return "blocked"; // "bot was blocked by the user", "user is deactivated" etc.
+  }
+  if (code === 400) {
+    if (desc.includes("chat not found") || desc.includes("user not found") || desc.includes("peer_id_invalid"))
+      return "not_found";
+  }
+  if (code === 429) return "rate_limit";
+  return "other";
+}
+
 export async function broadcast(opts: {
   recipients: number[];
   text: string;
   image?: string | Buffer;
   button?: { text: string; url: string } | null;
-  onProgress?: (stats: { sent: number; failed: number; processed: number; total: number }) => void | Promise<void>;
-}): Promise<{ sent: number; failed: number }> {
+  onProgress?: (stats: { sent: number; failed: number; processed: number; total: number; breakdown: BroadcastBreakdown }) => void | Promise<void>;
+}): Promise<{ sent: number; failed: number; breakdown: BroadcastBreakdown }> {
   let sent = 0;
   let failed = 0;
   let processed = 0;
   const total = opts.recipients.length;
+  const breakdown: BroadcastBreakdown = {
+    blocked: 0,
+    deactivated: 0,
+    not_found: 0,
+    rate_limit: 0,
+    other: 0,
+  };
   await Promise.all(
     opts.recipients.map((chatId) =>
       queue.add(async () => {
@@ -178,12 +209,14 @@ export async function broadcast(opts: {
         } catch (err: any) {
           const code = err?.response?.body?.error_code ?? err?.code;
           const desc = err?.response?.body?.description ?? err?.message;
-          console.warn(`[broadcast] failed chatId=${chatId}: ${code} — ${desc}`);
+          const kind = classifyFailure(err);
+          breakdown[kind]++;
+          console.warn(`[broadcast] failed chatId=${chatId} kind=${kind}: ${code} — ${desc}`);
           failed++;
         } finally {
           processed++;
           try {
-            await opts.onProgress?.({ sent, failed, processed, total });
+            await opts.onProgress?.({ sent, failed, processed, total, breakdown });
           } catch (err: any) {
             console.warn(`[broadcast] progress update failed: ${err?.message ?? err}`);
           }
@@ -191,7 +224,7 @@ export async function broadcast(opts: {
       })
     )
   );
-  return { sent, failed };
+  return { sent, failed, breakdown };
 }
 
 export async function notifyOrdersChat(text: string): Promise<void> {

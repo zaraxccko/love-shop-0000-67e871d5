@@ -165,7 +165,7 @@ export const Admin = {
   broadcast: (payload: any) =>
     api<{ logId: string; queued: number; status: string }>("/broadcast", { method: "POST", body: payload }),
   broadcastStatus: (id: string) =>
-    api<{ id: string; status: "processing" | "completed" | "failed"; total: number; sent: number; failed: number; error?: string | null }>(`/admin/broadcast/${id}`),
+    api<{ id: string; status: "processing" | "completed" | "failed"; total: number; sent: number; failed: number; breakdown?: { blocked?: number; deactivated?: number; not_found?: number; rate_limit?: number; other?: number } | null; error?: string | null }>(`/admin/broadcast/${id}`),
   promoList: () => api<Array<{ id: string; code: string; discountPct: number; active: boolean; createdAt: string; redemptions: number }>>("/admin/promo"),
   promoCreate: (payload: { code: string; discountPct: number; active?: boolean }) =>
     api<{ id: string; code: string; discountPct: number; active: boolean }>("/admin/promo", { method: "POST", body: payload }),

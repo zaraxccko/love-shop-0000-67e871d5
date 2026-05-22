@@ -596,26 +596,27 @@ export async function adminRoutes(app: FastifyInstance) {
           text,
           image: imageForSend,
           button: normalizedButton,
-          onProgress: async ({ sent, failed, processed, total }) => {
+          onProgress: async ({ sent, failed, processed, total, breakdown }) => {
             const now = Date.now();
             if (processed !== total && processed % 25 !== 0 && now - lastProgressAt < 5_000) return;
             lastProgressAt = now;
             try {
               await prisma.broadcastLog.update({
                 where: { id: log.id },
-                data: { sentCount: sent, failedCount: failed },
+                data: { sentCount: sent, failedCount: failed, failureBreakdown: breakdown as any },
               });
             } catch (err: any) {
               console.warn(`[broadcast] progress save failed: ${err?.message ?? err}`);
             }
           },
         });
-        console.log(`[broadcast] done logId=${log.id}, sent=${result.sent}, failed=${result.failed}`);
+        console.log(`[broadcast] done logId=${log.id}, sent=${result.sent}, failed=${result.failed}, breakdown=${JSON.stringify(result.breakdown)}`);
         await prisma.broadcastLog.update({
           where: { id: log.id },
           data: {
             sentCount: result.sent,
             failedCount: result.failed,
+            failureBreakdown: result.breakdown as any,
             status: "completed",
             finishedAt: new Date(),
           },
@@ -649,6 +650,7 @@ export async function adminRoutes(app: FastifyInstance) {
       total: log.totalCount,
       sent: log.sentCount,
       failed: log.failedCount,
+      breakdown: log.failureBreakdown ?? null,
       error: log.error,
       createdAt: log.createdAt,
       finishedAt: log.finishedAt,
