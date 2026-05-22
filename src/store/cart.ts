@@ -203,7 +203,8 @@ export const useCart = create<CartState>()(
           out.push(l);
           const variant = l.product.variants?.find((v) => v.id === l.variantId);
           const grams = variant?.grams ?? 0;
-          const giftGrams = getPromoGiftGrams(citySlug, grams);
+          // Акция на 5g временно неактивна — никаких подарков для этой фасовки.
+          const giftGrams = grams === 5 ? 0 : getPromoGiftGrams(citySlug, grams);
           const giftVariant = giftGrams > 0 ? findGiftVariant(l.product, giftGrams) : undefined;
           if (giftVariant) {
             out.push({

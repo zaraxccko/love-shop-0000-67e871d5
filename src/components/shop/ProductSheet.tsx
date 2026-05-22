@@ -281,9 +281,9 @@ export const ProductSheet = ({ product, onOpenChange }: ProductSheetProps) => {
                   .sort((a, b) => a.grams - b.grams)
                   .map((v) => {
                     const price = country ? v.pricesByCountry?.[country.slug] ?? 0 : 0;
-                    const giftGrams = getPromoGiftGrams(citySlug, v.grams);
-                    const giftVariant = giftGrams > 0 ? findGiftVariant(product, giftGrams) : undefined;
                     const promoInactive = v.grams === 5;
+                    const giftGrams = promoInactive ? 0 : getPromoGiftGrams(citySlug, v.grams);
+                    const giftVariant = giftGrams > 0 ? findGiftVariant(product, giftGrams) : undefined;
                     // available stash types for this district
                     const dSlug = districtSlug ?? variantStashes(v)[0]?.districtSlug ?? "";
                     const typesHere = new Set(
@@ -300,14 +300,15 @@ export const ProductSheet = ({ product, onOpenChange }: ProductSheetProps) => {
                           <div className="font-bold text-base">{v.grams}g</div>
                           <div className="text-sm text-muted-foreground">·</div>
                           <div className="text-sm font-semibold text-foreground">${price}</div>
-                          {giftVariant && !promoInactive && (
+                          {giftVariant && (
                             <span className="text-[10px] font-bold uppercase tracking-wide text-primary bg-primary/10 rounded-full px-2 py-0.5">
                               🎁 +{giftGrams}g Free
                             </span>
                           )}
                           {promoInactive && (
-                            <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground bg-muted rounded-full px-2 py-0.5">
-                              {lang === "ru" ? "⏸ Акция временно неактивна" : "⏸ Promo temporarily inactive"}
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground bg-muted rounded-full px-2 py-0.5">
+                              <span className="line-through opacity-60">🎁 +3g Free</span>
+                              <span>· {lang === "ru" ? "временно неактивна" : "temporarily inactive"}</span>
                             </span>
                           )}
                           {typesHere.size > 0 && (
