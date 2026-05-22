@@ -74,16 +74,45 @@ export const BroadcastTab = () => {
     haptic("medium");
     setSending(true);
     try {
-      const data = await Admin.broadcast({
+      const { logId, queued } = await Admin.broadcast({
         segment,
         text,
         image,
         button: btnText.trim() ? { text: btnText.trim(), url: btnUrl.trim() } : null,
-      }) as { queued?: number; sent?: number; failed?: number };
-      haptic("success");
-      toast.success(
-        `Готово · отправлено ${(data.sent ?? 0).toLocaleString("ru")}, ошибок ${(data.failed ?? 0).toLocaleString("ru")}`
-      );
+      });
+      toast.info(`Рассылка запущена · получателей: ${queued.toLocaleString("ru")}`);
+
+      // Поллим статус — рассылка идёт в фоне на бэке
+      const started = Date.now();
+      const maxMs = 30 * 60 * 1000; // 30 минут
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        await new Promise((r) => setTimeout(r, 3000));
+        let status;
+        try {
+          status = await Admin.broadcastStatus(logId);
+        } catch (e) {
+          if (Date.now() - started > maxMs) throw e;
+          continue;
+        }
+        if (status.status === "completed") {
+          haptic("success");
+          toast.success(
+            `Готово · отправлено ${status.sent.toLocaleString("ru")} из ${status.total.toLocaleString("ru")}, ошибок ${status.failed.toLocaleString("ru")}`
+          );
+          break;
+        }
+        if (status.status === "failed") {
+          haptic("error");
+          toast.error(`Рассылка прервана: ${status.error ?? "неизвестная ошибка"}`);
+          break;
+        }
+        if (Date.now() - started > maxMs) {
+          toast.warning(`Рассылка ещё идёт · отправлено ${status.sent}/${status.total}. Проверьте позже.`);
+          break;
+        }
+      }
+
       setText("");
       setImage(null);
       setBtnText("");
