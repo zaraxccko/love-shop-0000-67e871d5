@@ -1505,7 +1505,19 @@ const LocationsAdmin = ({ onBack }: LocationsAdminProps) => {
                   <div className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
                     Акции (подарок в граммах)
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-3 gap-2">
+                    <label className="flex items-center gap-2 text-xs">
+                      <span className="shrink-0">2g →</span>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={promo.giftFor2}
+                        onChange={(e) =>
+                          setPromo(country.slug, { giftFor2: Math.max(0, Number(e.target.value) || 0) })
+                        }
+                        className="h-9"
+                      />
+                    </label>
                     <label className="flex items-center gap-2 text-xs">
                       <span className="shrink-0">5g →</span>
                       <Input
@@ -1531,6 +1543,7 @@ const LocationsAdmin = ({ onBack }: LocationsAdminProps) => {
                       />
                     </label>
                   </div>
+
                 </div>
               )}
 
