@@ -85,6 +85,7 @@ export interface AdminUser {
   createdAt: string;
   ordersCount: number;
   isBanned?: boolean;
+  botBlocked?: boolean;
 }
 
 export interface MeUser {

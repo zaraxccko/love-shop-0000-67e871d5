@@ -395,6 +395,7 @@ export async function adminRoutes(app: FastifyInstance) {
             citySlug: true,
             createdAt: true,
             isBanned: true,
+            botBlocked: true,
             _count: { select: { orders: true } },
           },
         }),
@@ -412,6 +413,7 @@ export async function adminRoutes(app: FastifyInstance) {
           createdAt: u.createdAt.toISOString(),
           ordersCount: u._count.orders,
           isBanned: u.isBanned,
+          botBlocked: u.botBlocked,
         })),
         total,
       };
@@ -565,7 +567,7 @@ export async function adminRoutes(app: FastifyInstance) {
       segment === "active" ? { orders: { some: {} } }
       : segment === "inactive" ? { orders: { none: {} } }
       : {};
-    const where = { ...baseWhere, isBanned: false };
+    const where = { ...baseWhere, isBanned: false, botBlocked: false };
     const users = await prisma.user.findMany({ where, select: { tgId: true } });
     const recipientIds = new Set<string>(users.map((u) => u.tgId.toString()));
     if (segment === "all") {

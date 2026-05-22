@@ -206,6 +206,13 @@ export async function broadcast(opts: {
         try {
           await sendOne({ chatId, text: opts.text, image: opts.image, button: opts.button });
           sent++;
+          // Если ранее был помечен как заблокировавший — снимаем флаг (юзер снова доступен).
+          try {
+            await prisma.user.updateMany({
+              where: { tgId: BigInt(chatId), botBlocked: true },
+              data: { botBlocked: false },
+            });
+          } catch {}
         } catch (err: any) {
           const code = err?.response?.body?.error_code ?? err?.code;
           const desc = err?.response?.body?.description ?? err?.message;
@@ -213,6 +220,15 @@ export async function broadcast(opts: {
           breakdown[kind]++;
           console.warn(`[broadcast] failed chatId=${chatId} kind=${kind}: ${code} — ${desc}`);
           failed++;
+          // Помечаем юзера, чтобы исключить из следующих рассылок и подсветить в админке.
+          if (kind === "blocked" || kind === "deactivated" || kind === "not_found") {
+            try {
+              await prisma.user.updateMany({
+                where: { tgId: BigInt(chatId) },
+                data: { botBlocked: true },
+              });
+            } catch {}
+          }
         } finally {
           processed++;
           try {
