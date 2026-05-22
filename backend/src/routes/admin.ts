@@ -574,35 +574,85 @@ export async function adminRoutes(app: FastifyInstance) {
     const recipients = [...recipientIds].map((id) => Number(id)).filter(Number.isSafeInteger);
 
     const log = await prisma.broadcastLog.create({
-      data: { segment, text, imageUrl: imageUrlForLog, button: normalizedButton ?? undefined },
-    });
-
-    let lastProgressAt = 0;
-    console.log(`[broadcast] starting logId=${log.id}, recipients=${recipients.length}`);
-
-    const result = await broadcast({
-      recipients,
-      text,
-      image: imageForSend,
-      button: normalizedButton,
-      onProgress: async ({ sent, failed, processed, total }) => {
-        const now = Date.now();
-        if (processed !== total && processed % 25 !== 0 && now - lastProgressAt < 5_000) return;
-        lastProgressAt = now;
-        await prisma.broadcastLog.update({
-          where: { id: log.id },
-          data: { sentCount: sent, failedCount: failed },
-        });
+      data: {
+        segment,
+        text,
+        imageUrl: imageUrlForLog,
+        button: normalizedButton ?? undefined,
+        totalCount: recipients.length,
+        status: "processing",
       },
     });
 
-    console.log(`[broadcast] done logId=${log.id}, sent=${result.sent}, failed=${result.failed}`);
-    await prisma.broadcastLog.update({
-      where: { id: log.id },
-      data: { sentCount: result.sent, failedCount: result.failed },
-    });
+    console.log(`[broadcast] starting logId=${log.id}, recipients=${recipients.length}`);
 
-    return { queued: recipients.length, sent: result.sent, failed: result.failed, logId: log.id };
+    // Запускаем рассылку в фоне — HTTP-запрос завершаем сразу, чтобы не упереться
+    // в таймаут прокси при больших списках получателей. Фронт поллит статус.
+    (async () => {
+      let lastProgressAt = 0;
+      try {
+        const result = await broadcast({
+          recipients,
+          text,
+          image: imageForSend,
+          button: normalizedButton,
+          onProgress: async ({ sent, failed, processed, total }) => {
+            const now = Date.now();
+            if (processed !== total && processed % 25 !== 0 && now - lastProgressAt < 5_000) return;
+            lastProgressAt = now;
+            try {
+              await prisma.broadcastLog.update({
+                where: { id: log.id },
+                data: { sentCount: sent, failedCount: failed },
+              });
+            } catch (err: any) {
+              console.warn(`[broadcast] progress save failed: ${err?.message ?? err}`);
+            }
+          },
+        });
+        console.log(`[broadcast] done logId=${log.id}, sent=${result.sent}, failed=${result.failed}`);
+        await prisma.broadcastLog.update({
+          where: { id: log.id },
+          data: {
+            sentCount: result.sent,
+            failedCount: result.failed,
+            status: "completed",
+            finishedAt: new Date(),
+          },
+        });
+      } catch (err: any) {
+        const msg = err?.message ?? String(err);
+        console.error(`[broadcast] crashed logId=${log.id}: ${msg}`);
+        try {
+          await prisma.broadcastLog.update({
+            where: { id: log.id },
+            data: { status: "failed", error: msg.slice(0, 500), finishedAt: new Date() },
+          });
+        } catch {}
+      }
+    })();
+
+    return reply.code(202).send({
+      logId: log.id,
+      queued: recipients.length,
+      status: "processing",
+    });
+  });
+
+  app.get("/admin/broadcast/:id", { preHandler: requireAdmin }, async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const log = await prisma.broadcastLog.findUnique({ where: { id } });
+    if (!log) return reply.code(404).send({ error: "not_found" });
+    return {
+      id: log.id,
+      status: log.status,
+      total: log.totalCount,
+      sent: log.sentCount,
+      failed: log.failedCount,
+      error: log.error,
+      createdAt: log.createdAt,
+      finishedAt: log.finishedAt,
+    };
   });
 }
 
