@@ -145,10 +145,10 @@ const UserRow = ({ user, onToggleBan, readOnly }: { user: AdminUser; onToggleBan
           )}
           {user.botBlocked && (
             <span
-              className="inline-flex items-center gap-0.5 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground"
+              className="inline-flex items-center gap-0.5 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-destructive/15 text-destructive"
               title="Юзер заблокировал бота — не получает рассылок"
             >
-              🚫 бот
+              🚫 заблокировал бота 🚫
             </span>
           )}
         </div>
