@@ -4,17 +4,18 @@ import { findCity, COUNTRIES } from "@/data/locations";
 import type { Product } from "@/types/shop";
 
 export interface CountryPromo {
+  /** Подарок (граммы) при покупке 2g */
+  giftFor2: number;
   /** Подарок (граммы) при покупке 5g */
   giftFor5: number;
   /** Подарок (граммы) при покупке 10g */
   giftFor10: number;
 }
 
-const DEFAULT_PROMO: CountryPromo = { giftFor5: 5, giftFor10: 0 };
+const DEFAULT_PROMO: CountryPromo = { giftFor2: 1, giftFor5: 0, giftFor10: 0 };
 
-const DEFAULT_BY_COUNTRY: Record<string, CountryPromo> = {
-  uae: { giftFor5: 2, giftFor10: 5 },
-};
+// На всех локациях единая акция: 2g + 1g в подарок.
+const DEFAULT_BY_COUNTRY: Record<string, CountryPromo> = {};
 
 interface LocationPromosState {
   /** Промо-настройки по slug страны */
@@ -31,16 +32,17 @@ export const useLocationPromos = create<LocationPromosState>()(
       getPromo: (countrySlug) => {
         if (!countrySlug) return DEFAULT_PROMO;
         const stored = get().promos[countrySlug];
-        if (stored) return stored;
+        if (stored) return { ...DEFAULT_PROMO, ...stored };
         return DEFAULT_BY_COUNTRY[countrySlug] ?? DEFAULT_PROMO;
       },
       setPromo: (countrySlug, patch) =>
         set((s) => {
-          const current = s.promos[countrySlug] ?? DEFAULT_BY_COUNTRY[countrySlug] ?? DEFAULT_PROMO;
+          const current =
+            s.promos[countrySlug] ?? DEFAULT_BY_COUNTRY[countrySlug] ?? DEFAULT_PROMO;
           return {
             promos: {
               ...s.promos,
-              [countrySlug]: { ...current, ...patch },
+              [countrySlug]: { ...DEFAULT_PROMO, ...current, ...patch },
             },
           };
         }),
@@ -51,7 +53,11 @@ export const useLocationPromos = create<LocationPromosState>()(
           return { promos: next };
         }),
     }),
-    { name: "loveshop-location-promos" }
+    {
+      name: "loveshop-location-promos",
+      version: 2,
+      migrate: () => ({ promos: {} }),
+    }
   )
 );
 
@@ -62,6 +68,7 @@ export const getPromoGiftGrams = (citySlug: string | null | undefined, boughtGra
 
   if (boughtGrams >= 10 && promo.giftFor10 > 0) return promo.giftFor10;
   if (boughtGrams >= 5 && promo.giftFor5 > 0) return promo.giftFor5;
+  if (boughtGrams >= 2 && promo.giftFor2 > 0) return promo.giftFor2;
   return 0;
 };
 
