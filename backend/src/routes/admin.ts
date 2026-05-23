@@ -567,13 +567,26 @@ export async function adminRoutes(app: FastifyInstance) {
       segment === "active" ? { orders: { some: {} } }
       : segment === "inactive" ? { orders: { none: {} } }
       : {};
-    const where = { ...baseWhere, isBanned: false, botBlocked: false };
-    const users = await prisma.user.findMany({ where, select: { tgId: true } });
+    // Полная аудитория сегмента (включая тех, кто заблокировал бота) — это число
+    // показываем как «всего, кто запускал бота» в UI.
+    const audienceWhere = { ...baseWhere, isBanned: false };
+    const reachableWhere = { ...audienceWhere, botBlocked: false };
+
+    const [audienceUsers, users] = await Promise.all([
+      prisma.user.findMany({ where: audienceWhere, select: { tgId: true } }),
+      prisma.user.findMany({ where: reachableWhere, select: { tgId: true } }),
+    ]);
+    const audienceIds = new Set<string>(audienceUsers.map((u) => u.tgId.toString()));
     const recipientIds = new Set<string>(users.map((u) => u.tgId.toString()));
     if (segment === "all") {
-      for (const adminId of env.adminTgIds) recipientIds.add(adminId.toString());
+      for (const adminId of env.adminTgIds) {
+        recipientIds.add(adminId.toString());
+        audienceIds.add(adminId.toString());
+      }
     }
     const recipients = [...recipientIds].map((id) => Number(id)).filter(Number.isSafeInteger);
+    const audienceTotal = audienceIds.size;
+    const preBlocked = Math.max(0, audienceTotal - recipients.length);
 
     const log = await prisma.broadcastLog.create({
       data: {
@@ -581,7 +594,7 @@ export async function adminRoutes(app: FastifyInstance) {
         text,
         imageUrl: imageUrlForLog,
         button: normalizedButton ?? undefined,
-        totalCount: recipients.length,
+        totalCount: audienceTotal,
         status: "processing",
       },
     });
