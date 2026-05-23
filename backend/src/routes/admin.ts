@@ -616,9 +616,13 @@ export async function adminRoutes(app: FastifyInstance) {
             if (processed !== total && processed % 25 !== 0 && now - lastProgressAt < 5_000) return;
             lastProgressAt = now;
             try {
+              const mergedBreakdown = {
+                ...(breakdown ?? {}),
+                blocked: (breakdown?.blocked ?? 0) + preBlocked,
+              };
               await prisma.broadcastLog.update({
                 where: { id: log.id },
-                data: { sentCount: sent, failedCount: failed, failureBreakdown: breakdown as any },
+                data: { sentCount: sent, failedCount: failed + preBlocked, failureBreakdown: mergedBreakdown as any },
               });
             } catch (err: any) {
               console.warn(`[broadcast] progress save failed: ${err?.message ?? err}`);
@@ -626,12 +630,16 @@ export async function adminRoutes(app: FastifyInstance) {
           },
         });
         console.log(`[broadcast] done logId=${log.id}, sent=${result.sent}, failed=${result.failed}, breakdown=${JSON.stringify(result.breakdown)}`);
+        const finalBreakdown = {
+          ...(result.breakdown ?? {}),
+          blocked: (result.breakdown?.blocked ?? 0) + preBlocked,
+        };
         await prisma.broadcastLog.update({
           where: { id: log.id },
           data: {
             sentCount: result.sent,
-            failedCount: result.failed,
-            failureBreakdown: result.breakdown as any,
+            failedCount: result.failed + preBlocked,
+            failureBreakdown: finalBreakdown as any,
             status: "completed",
             finishedAt: new Date(),
           },
