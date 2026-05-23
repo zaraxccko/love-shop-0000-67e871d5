@@ -567,13 +567,26 @@ export async function adminRoutes(app: FastifyInstance) {
       segment === "active" ? { orders: { some: {} } }
       : segment === "inactive" ? { orders: { none: {} } }
       : {};
-    const where = { ...baseWhere, isBanned: false, botBlocked: false };
-    const users = await prisma.user.findMany({ where, select: { tgId: true } });
+    // Полная аудитория сегмента (включая тех, кто заблокировал бота) — это число
+    // показываем как «всего, кто запускал бота» в UI.
+    const audienceWhere = { ...baseWhere, isBanned: false };
+    const reachableWhere = { ...audienceWhere, botBlocked: false };
+
+    const [audienceUsers, users] = await Promise.all([
+      prisma.user.findMany({ where: audienceWhere, select: { tgId: true } }),
+      prisma.user.findMany({ where: reachableWhere, select: { tgId: true } }),
+    ]);
+    const audienceIds = new Set<string>(audienceUsers.map((u) => u.tgId.toString()));
     const recipientIds = new Set<string>(users.map((u) => u.tgId.toString()));
     if (segment === "all") {
-      for (const adminId of env.adminTgIds) recipientIds.add(adminId.toString());
+      for (const adminId of env.adminTgIds) {
+        recipientIds.add(adminId.toString());
+        audienceIds.add(adminId.toString());
+      }
     }
     const recipients = [...recipientIds].map((id) => Number(id)).filter(Number.isSafeInteger);
+    const audienceTotal = audienceIds.size;
+    const preBlocked = Math.max(0, audienceTotal - recipients.length);
 
     const log = await prisma.broadcastLog.create({
       data: {
@@ -581,7 +594,7 @@ export async function adminRoutes(app: FastifyInstance) {
         text,
         imageUrl: imageUrlForLog,
         button: normalizedButton ?? undefined,
-        totalCount: recipients.length,
+        totalCount: audienceTotal,
         status: "processing",
       },
     });
@@ -603,9 +616,13 @@ export async function adminRoutes(app: FastifyInstance) {
             if (processed !== total && processed % 25 !== 0 && now - lastProgressAt < 5_000) return;
             lastProgressAt = now;
             try {
+              const mergedBreakdown = {
+                ...(breakdown ?? {}),
+                blocked: (breakdown?.blocked ?? 0) + preBlocked,
+              };
               await prisma.broadcastLog.update({
                 where: { id: log.id },
-                data: { sentCount: sent, failedCount: failed, failureBreakdown: breakdown as any },
+                data: { sentCount: sent, failedCount: failed + preBlocked, failureBreakdown: mergedBreakdown as any },
               });
             } catch (err: any) {
               console.warn(`[broadcast] progress save failed: ${err?.message ?? err}`);
@@ -613,12 +630,16 @@ export async function adminRoutes(app: FastifyInstance) {
           },
         });
         console.log(`[broadcast] done logId=${log.id}, sent=${result.sent}, failed=${result.failed}, breakdown=${JSON.stringify(result.breakdown)}`);
+        const finalBreakdown = {
+          ...(result.breakdown ?? {}),
+          blocked: (result.breakdown?.blocked ?? 0) + preBlocked,
+        };
         await prisma.broadcastLog.update({
           where: { id: log.id },
           data: {
             sentCount: result.sent,
-            failedCount: result.failed,
-            failureBreakdown: result.breakdown as any,
+            failedCount: result.failed + preBlocked,
+            failureBreakdown: finalBreakdown as any,
             status: "completed",
             finishedAt: new Date(),
           },
