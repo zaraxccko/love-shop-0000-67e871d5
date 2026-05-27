@@ -25,13 +25,46 @@ const SEGMENT_LABELS: Record<Segment, string> = {
   inactive: "Без заказов",
 };
 
-const fileToDataUrl = (file: File) =>
+const fileToDataUrl = (file: File | Blob) =>
   new Promise<string>((res, rej) => {
     const r = new FileReader();
     r.onload = () => res(r.result as string);
     r.onerror = rej;
     r.readAsDataURL(file);
   });
+
+// Downscale + recompress картинку в JPEG ≤ ~1.5 MB, чтобы влезть в лимиты
+// фастифая (25 MB body) и zod-валидации (15M chars base64). Иначе
+// загрузка «молча падает» 400-кой при больших фото с телефона.
+async function compressImage(file: File): Promise<string> {
+  const dataUrl = await fileToDataUrl(file);
+  const img = await new Promise<HTMLImageElement>((res, rej) => {
+    const i = new Image();
+    i.onload = () => res(i);
+    i.onerror = rej;
+    i.src = dataUrl;
+  });
+  const MAX = 1600;
+  let { width, height } = img;
+  if (width > MAX || height > MAX) {
+    const k = Math.min(MAX / width, MAX / height);
+    width = Math.round(width * k);
+    height = Math.round(height * k);
+  }
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return dataUrl;
+  ctx.drawImage(img, 0, 0, width, height);
+  // Подбираем качество: цель ≤ 1.5 MB base64
+  for (const q of [0.85, 0.75, 0.65, 0.55, 0.45]) {
+    const out = canvas.toDataURL("image/jpeg", q);
+    if (out.length <= 1_500_000) return out;
+  }
+  return canvas.toDataURL("image/jpeg", 0.4);
+}
+
 
 export const BroadcastTab = () => {
   const analytics = useAdminPanel((s) => s.analytics);
@@ -57,10 +90,21 @@ export const BroadcastTab = () => {
 
   const onPickImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
+    e.target.value = ""; // позволяет повторно выбрать тот же файл
     if (!f) return;
-    const url = await fileToDataUrl(f);
-    setImage(url);
+    if (!f.type.startsWith("image/")) {
+      toast.error("Можно загрузить только изображение");
+      return;
+    }
+    try {
+      const url = await compressImage(f);
+      setImage(url);
+    } catch (err) {
+      console.error("[broadcast] image compress failed", err);
+      toast.error("Не удалось обработать картинку");
+    }
   };
+
 
   const send = async () => {
     if (!text.trim()) {
@@ -126,9 +170,13 @@ export const BroadcastTab = () => {
       setImage(null);
       setBtnText("");
       setBtnUrl("");
-    } catch (e) {
+    } catch (e: any) {
       haptic("error");
-      toast.error(`Не удалось отправить: ${e instanceof Error ? e.message : "ошибка сети"}`);
+      const body = e?.body;
+      const detail =
+        (typeof body === "object" && body && (body.error?.formErrors?.[0] || body.error?.fieldErrors?.image?.[0] || (typeof body.error === "string" ? body.error : null) || body.message)) ||
+        (e instanceof Error ? e.message : "ошибка сети");
+      toast.error(`Не удалось отправить: ${detail}`);
     } finally {
       setSending(false);
     }
