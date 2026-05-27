@@ -392,10 +392,12 @@ type TelegramFrom = {
   language_code?: string;
 };
 
-async function rememberTelegramUser(from?: TelegramFrom): Promise<void> {
-  if (!from?.id || from.is_bot) return;
+async function rememberTelegramUser(from?: TelegramFrom): Promise<boolean> {
+  if (!from?.id || from.is_bot) return false;
 
   const tgId = BigInt(from.id);
+  const before = await prisma.user.findUnique({ where: { tgId }, select: { botBlocked: true } });
+  const isNew = !before;
   await prisma.user.upsert({
     where: { tgId },
     create: {
@@ -416,6 +418,11 @@ async function rememberTelegramUser(from?: TelegramFrom): Promise<void> {
       botBlocked: false,
     },
   });
+  // Если до этого юзер был помечен как заблокировавший — фиксируем "разблокировал".
+  if (before?.botBlocked) {
+    logUserEvent(tgId, "bot_unblocked").catch(() => {});
+  }
+  return isNew;
 }
 
 bot.on("message", (msg) => {
