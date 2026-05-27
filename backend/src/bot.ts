@@ -2,6 +2,7 @@ import TelegramBot from "node-telegram-bot-api";
 import PQueue from "p-queue";
 import { env } from "./env.js";
 import { prisma } from "./db.js";
+import { logUserEvent } from "./routes/events.js";
 
 export const bot = new TelegramBot(env.telegramBotToken, { polling: true });
 
@@ -208,10 +209,13 @@ export async function broadcast(opts: {
           sent++;
           // Если ранее был помечен как заблокировавший — снимаем флаг (юзер снова доступен).
           try {
-            await prisma.user.updateMany({
+            const upd = await prisma.user.updateMany({
               where: { tgId: BigInt(chatId), botBlocked: true },
               data: { botBlocked: false },
             });
+            if (upd.count > 0) {
+              logUserEvent(chatId, "bot_unblocked").catch(() => {});
+            }
           } catch {}
         } catch (err: any) {
           const code = err?.response?.body?.error_code ?? err?.code;
@@ -223,10 +227,13 @@ export async function broadcast(opts: {
           // Помечаем юзера, чтобы исключить из следующих рассылок и подсветить в админке.
           if (kind === "blocked" || kind === "deactivated" || kind === "not_found") {
             try {
-              await prisma.user.updateMany({
-                where: { tgId: BigInt(chatId) },
+              const upd = await prisma.user.updateMany({
+                where: { tgId: BigInt(chatId), botBlocked: false },
                 data: { botBlocked: true },
               });
+              if (upd.count > 0 && (kind === "blocked" || kind === "deactivated")) {
+                logUserEvent(chatId, "bot_blocked", { reason: kind }).catch(() => {});
+              }
             } catch {}
           }
         } finally {
@@ -385,10 +392,12 @@ type TelegramFrom = {
   language_code?: string;
 };
 
-async function rememberTelegramUser(from?: TelegramFrom): Promise<void> {
-  if (!from?.id || from.is_bot) return;
+async function rememberTelegramUser(from?: TelegramFrom): Promise<boolean> {
+  if (!from?.id || from.is_bot) return false;
 
   const tgId = BigInt(from.id);
+  const before = await prisma.user.findUnique({ where: { tgId }, select: { botBlocked: true } });
+  const isNew = !before;
   await prisma.user.upsert({
     where: { tgId },
     create: {
@@ -409,6 +418,11 @@ async function rememberTelegramUser(from?: TelegramFrom): Promise<void> {
       botBlocked: false,
     },
   });
+  // Если до этого юзер был помечен как заблокировавший — фиксируем "разблокировал".
+  if (before?.botBlocked) {
+    logUserEvent(tgId, "bot_unblocked").catch(() => {});
+  }
+  return isNew;
 }
 
 bot.on("message", (msg) => {
@@ -430,6 +444,9 @@ bot.onText(/\/start/, async (msg) => {
   try {
     await rememberTelegramUser(msg.from);
     const lang = pickLang(msg.from?.language_code);
+    if (msg.from?.id) {
+      logUserEvent(msg.from.id, "start", { lang }).catch(() => {});
+    }
     if (msg.from?.id && (await isUserBanned(msg.from.id))) {
       await bot.sendMessage(
         msg.chat.id,
@@ -466,6 +483,7 @@ bot.on("callback_query", async (q) => {
       parse_mode: "HTML",
       reply_markup: welcomeKeyboard(lang),
     });
+    if (q.from?.id) logUserEvent(q.from.id, "lang_switch", { lang }).catch(() => {});
     await bot.answerCallbackQuery(q.id, {
       text: lang === "ru" ? "Язык: Русский" : "Language: English",
     });

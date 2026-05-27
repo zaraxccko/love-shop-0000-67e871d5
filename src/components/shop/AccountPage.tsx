@@ -214,6 +214,25 @@ export const AccountPage = ({ onBack, onOpenCart, onOpenActiveOrder }: AccountPa
           </div>
         </section>
 
+        <a
+          href="https://t.me/love_supp_asia"
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => haptic("light")}
+          className="block rounded-2xl bg-card shadow-card p-4 active:scale-[0.99] transition-transform"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl gradient-primary text-primary-foreground flex items-center justify-center text-xl">
+              💬
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="font-bold text-sm">{tr("Связаться с оператором", "Contact operator")}</div>
+              <div className="text-[11px] text-muted-foreground">@love_supp_asia</div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </div>
+        </a>
+
         <section>
           <div className="flex items-center justify-between mb-2">
             <div className="font-display font-bold text-lg flex items-center gap-2">

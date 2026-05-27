@@ -3,6 +3,9 @@ import { persist } from "zustand/middleware";
 import type { CartLine, Product, StashType } from "@/types/shop";
 import { useLocation } from "@/store/location";
 import { findGiftVariant, getPromoGiftGrams } from "@/store/locationPromos";
+import { Events } from "@/lib/api";
+
+const productName = (p: Product) => (typeof p.name === "string" ? p.name : p.name?.ru ?? p.name?.en ?? p.id);
 
 const lineKey = (l: Pick<CartLine, "product" | "variantId" | "districtSlug" | "stashType"> & { isGift?: boolean }) =>
   `${l.product.id}::${l.variantId ?? ""}::${l.districtSlug ?? ""}::${l.stashType ?? ""}${l.isGift ? "::gift" : ""}`;
@@ -124,7 +127,15 @@ export const useCart = create<CartState>()(
         set((s) => applyToActive(s, (c) => ({ ...c, delivery: v }))),
       toggleDelivery: () =>
         set((s) => applyToActive(s, (c) => ({ ...c, delivery: !c.delivery }))),
-      add: (product, opts) =>
+      add: (product, opts) => {
+        const variant = product.variants?.find((v) => v.id === opts?.variantId);
+        Events.log("cart_add", {
+          productId: product.id,
+          name: productName(product),
+          variantId: opts?.variantId,
+          grams: variant?.grams,
+          districtSlug: opts?.districtSlug,
+        });
         set((s) =>
           applyToActive(s, (c) => {
             const candidate: CartLine = {
@@ -154,8 +165,17 @@ export const useCart = create<CartState>()(
             }
             return { ...base, lines: [...base.lines, candidate] };
           })
-        ),
-      remove: (key) =>
+        );
+      },
+      remove: (key) => {
+        const line = get().lines.find((l) => lineKey(l) === key);
+        if (line) {
+          Events.log("cart_remove", {
+            productId: line.product.id,
+            name: productName(line.product),
+            variantId: line.variantId,
+          });
+        }
         set((s) =>
           applyToActive(s, (c) => {
             const lines = c.lines.filter((l) => lineKey(l) !== key);
@@ -163,8 +183,19 @@ export const useCart = create<CartState>()(
               ? emptyCart()
               : { ...c, lines };
           })
-        ),
-      setQty: (key, qty) =>
+        );
+      },
+      setQty: (key, qty) => {
+        if (qty <= 0) {
+          const line = get().lines.find((l) => lineKey(l) === key);
+          if (line) {
+            Events.log("cart_remove", {
+              productId: line.product.id,
+              name: productName(line.product),
+              variantId: line.variantId,
+            });
+          }
+        }
         set((s) =>
           applyToActive(s, (c) => ({
             ...c,
@@ -173,8 +204,12 @@ export const useCart = create<CartState>()(
                 ? c.lines.filter((l) => lineKey(l) !== key)
                 : c.lines.map((l) => (lineKey(l) === key ? { ...l, qty } : l)),
           }))
-        ),
-      clear: () => set((s) => applyToActive(s, () => emptyCart())),
+        );
+      },
+      clear: () => {
+        if (get().lines.length > 0) Events.log("cart_clear");
+        set((s) => applyToActive(s, () => emptyCart()));
+      },
       totalQty: () => get().lines.reduce((s, l) => s + l.qty, 0),
       subtotalUSD: () =>
         get().lines.reduce(
