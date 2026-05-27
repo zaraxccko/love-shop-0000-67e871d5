@@ -527,28 +527,45 @@ bot.onText(/\/start/, async (msg) => {
 });
 
 
-// Переключение языка приветствия прямо в сообщении.
+// Кнопки приветствия: переключение языка, условия, вакансии.
 bot.on("callback_query", async (q) => {
   try {
     const data = q.data || "";
-    if (!data.startsWith("welcome:lang:")) return;
+    if (!data.startsWith("welcome:")) return;
     await rememberTelegramUser(q.from);
-    const lang: WelcomeLang = data.endsWith(":en") ? "en" : "ru";
     const chatId = q.message?.chat.id;
     const messageId = q.message?.message_id;
-    if (!chatId || !messageId) return;
 
-    const name = q.from?.first_name || "";
-    await bot.editMessageText(welcomeText(lang, name), {
-      chat_id: chatId,
-      message_id: messageId,
-      parse_mode: "HTML",
-      reply_markup: welcomeKeyboard(lang),
-    });
-    if (q.from?.id) logUserEvent(q.from.id, "lang_switch", { lang });
-    await bot.answerCallbackQuery(q.id, {
-      text: lang === "ru" ? "Язык: Русский" : "Language: English",
-    });
+    if (data.startsWith("welcome:lang:")) {
+      const lang: WelcomeLang = data.endsWith(":en") ? "en" : "ru";
+      if (!chatId || !messageId) return;
+      const name = q.from?.first_name || "";
+      await bot.editMessageText(welcomeText(lang, name), {
+        chat_id: chatId,
+        message_id: messageId,
+        parse_mode: "HTML",
+        reply_markup: welcomeKeyboard(lang),
+      });
+      if (q.from?.id) logUserEvent(q.from.id, "lang_switch", { lang });
+      await bot.answerCallbackQuery(q.id, {
+        text: lang === "ru" ? "Язык: Русский" : "Language: English",
+      });
+      return;
+    }
+
+    if (data.startsWith("welcome:terms:") || data.startsWith("welcome:jobs:")) {
+      const lang: WelcomeLang = data.endsWith(":en") ? "en" : "ru";
+      const isTerms = data.startsWith("welcome:terms:");
+      const text = isTerms ? termsText(lang) : jobsText(lang);
+      if (chatId) {
+        await bot.sendMessage(chatId, text, {
+          parse_mode: "HTML",
+          disable_web_page_preview: true,
+        });
+      }
+      await bot.answerCallbackQuery(q.id);
+      return;
+    }
   } catch {
     try { await bot.answerCallbackQuery(q.id); } catch {}
   }
