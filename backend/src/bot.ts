@@ -209,10 +209,13 @@ export async function broadcast(opts: {
           sent++;
           // Если ранее был помечен как заблокировавший — снимаем флаг (юзер снова доступен).
           try {
-            await prisma.user.updateMany({
+            const upd = await prisma.user.updateMany({
               where: { tgId: BigInt(chatId), botBlocked: true },
               data: { botBlocked: false },
             });
+            if (upd.count > 0) {
+              logUserEvent(chatId, "bot_unblocked").catch(() => {});
+            }
           } catch {}
         } catch (err: any) {
           const code = err?.response?.body?.error_code ?? err?.code;
