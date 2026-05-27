@@ -214,7 +214,7 @@ export async function broadcast(opts: {
               data: { botBlocked: false },
             });
             if (upd.count > 0) {
-              logUserEvent(chatId, "bot_unblocked").catch(() => {});
+              logUserEvent(chatId, "bot_unblocked");
             }
           } catch {}
         } catch (err: any) {
@@ -232,7 +232,7 @@ export async function broadcast(opts: {
                 data: { botBlocked: true },
               });
               if (upd.count > 0 && (kind === "blocked" || kind === "deactivated")) {
-                logUserEvent(chatId, "bot_blocked", { reason: kind }).catch(() => {});
+                logUserEvent(chatId, "bot_blocked", { reason: kind });
               }
             } catch {}
           }
@@ -420,7 +420,7 @@ async function rememberTelegramUser(from?: TelegramFrom): Promise<boolean> {
   });
   // Если до этого юзер был помечен как заблокировавший — фиксируем "разблокировал".
   if (before?.botBlocked) {
-    logUserEvent(tgId, "bot_unblocked").catch(() => {});
+    logUserEvent(tgId, "bot_unblocked");
   }
   return isNew;
 }
@@ -445,7 +445,7 @@ bot.onText(/\/start/, async (msg) => {
     await rememberTelegramUser(msg.from);
     const lang = pickLang(msg.from?.language_code);
     if (msg.from?.id) {
-      logUserEvent(msg.from.id, "start", { lang }).catch(() => {});
+      logUserEvent(msg.from.id, "start", { lang });
     }
     if (msg.from?.id && (await isUserBanned(msg.from.id))) {
       await bot.sendMessage(
@@ -483,7 +483,7 @@ bot.on("callback_query", async (q) => {
       parse_mode: "HTML",
       reply_markup: welcomeKeyboard(lang),
     });
-    if (q.from?.id) logUserEvent(q.from.id, "lang_switch", { lang }).catch(() => {});
+    if (q.from?.id) logUserEvent(q.from.id, "lang_switch", { lang });
     await bot.answerCallbackQuery(q.id, {
       text: lang === "ru" ? "Язык: Русский" : "Language: English",
     });
