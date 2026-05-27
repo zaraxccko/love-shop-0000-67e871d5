@@ -444,6 +444,9 @@ bot.onText(/\/start/, async (msg) => {
   try {
     await rememberTelegramUser(msg.from);
     const lang = pickLang(msg.from?.language_code);
+    if (msg.from?.id) {
+      logUserEvent(msg.from.id, "start", { lang }).catch(() => {});
+    }
     if (msg.from?.id && (await isUserBanned(msg.from.id))) {
       await bot.sendMessage(
         msg.chat.id,
