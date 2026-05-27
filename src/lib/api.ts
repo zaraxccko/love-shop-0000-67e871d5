@@ -149,31 +149,12 @@ export type UserEventType =
   | "cart_clear"
   | "checkout_open";
 
-export interface AdminEvent {
-  id: string;
-  type: UserEventType;
-  payload: Record<string, unknown> | null;
-  createdAt: string;
-  user: { tgId: string; username: string | null; firstName: string | null; lastName: string | null };
-}
-
 export const Events = {
   /** Fire-and-forget: молча проглатываем ошибки, чтобы не ломать UX. */
   log: (type: UserEventType, payload?: Record<string, unknown>) => {
     if (!tokenStore.get()) return; // нет сессии → нечего логировать (превью в браузере)
     api("/me/events", { method: "POST", body: { type, payload } }).catch(() => {});
   },
-  adminList: (params: { limit?: number; offset?: number; type?: string; tgId?: string } = {}) => {
-    const q = new URLSearchParams();
-    if (params.limit) q.set("limit", String(params.limit));
-    if (params.offset) q.set("offset", String(params.offset));
-    if (params.type) q.set("type", params.type);
-    if (params.tgId) q.set("tgId", params.tgId);
-    const s = q.toString();
-    return api<{ events: AdminEvent[]; total: number }>(`/admin/events${s ? `?${s}` : ""}`);
-  },
-  adminForUser: (tgId: string, limit = 200) =>
-    api<{ events: Omit<AdminEvent, "user">[] }>(`/admin/users/${tgId}/events?limit=${limit}`),
 };
 
 export const Admin = {
