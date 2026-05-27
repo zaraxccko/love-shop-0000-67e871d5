@@ -34,7 +34,6 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { AnalyticsTab } from "@/components/shop/admin/AnalyticsTab";
 import { BroadcastTab } from "@/components/shop/admin/BroadcastTab";
-import { ActivityTab } from "@/components/shop/admin/ActivityTab";
 import { ImageCropper } from "@/components/shop/admin/ImageCropper";
 import { PromoTab } from "@/components/shop/admin/PromoTab";
 import { toast } from "sonner";
