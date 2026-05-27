@@ -483,6 +483,7 @@ bot.on("callback_query", async (q) => {
       parse_mode: "HTML",
       reply_markup: welcomeKeyboard(lang),
     });
+    if (q.from?.id) logUserEvent(q.from.id, "lang_switch", { lang }).catch(() => {});
     await bot.answerCallbackQuery(q.id, {
       text: lang === "ru" ? "Язык: Русский" : "Language: English",
     });
