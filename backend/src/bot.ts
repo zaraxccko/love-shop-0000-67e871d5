@@ -377,19 +377,32 @@ function welcomeKeyboard(lang: WelcomeLang) {
       [{ text: cta, web_app: { url: webappUrl } }],
       [
         {
-          text: lang === "ru" ? "🔗 Условия использования 🔗" : "🔗 Terms of Service 🔗",
+          text: lang === "ru" ? "🔗 Условия использования" : "🔗 Terms of Service",
           callback_data: `welcome:terms:${lang}`,
         },
       ],
       [
         {
-          text: lang === "ru" ? "📩 Актуальные вакансии 📩" : "📩 Open positions 📩",
+          text: lang === "ru" ? "📩 Актуальные вакансии" : "📩 Open positions",
           callback_data: `welcome:jobs:${lang}`,
         },
       ],
       [
         { text: ruLabel, callback_data: "welcome:lang:ru" },
         { text: enLabel, callback_data: "welcome:lang:en" },
+      ],
+    ],
+  };
+}
+
+function backKeyboard(lang: WelcomeLang) {
+  return {
+    inline_keyboard: [
+      [
+        {
+          text: lang === "ru" ? "🪄 Обратно в Магазин 🪄" : "🪄 Back to Shop 🪄",
+          callback_data: `welcome:back:${lang}`,
+        },
       ],
     ],
   };
