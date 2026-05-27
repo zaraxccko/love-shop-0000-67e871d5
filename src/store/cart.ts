@@ -3,6 +3,9 @@ import { persist } from "zustand/middleware";
 import type { CartLine, Product, StashType } from "@/types/shop";
 import { useLocation } from "@/store/location";
 import { findGiftVariant, getPromoGiftGrams } from "@/store/locationPromos";
+import { Events } from "@/lib/api";
+
+const productName = (p: Product) => (typeof p.name === "string" ? p.name : p.name?.ru ?? p.name?.en ?? p.id);
 
 const lineKey = (l: Pick<CartLine, "product" | "variantId" | "districtSlug" | "stashType"> & { isGift?: boolean }) =>
   `${l.product.id}::${l.variantId ?? ""}::${l.districtSlug ?? ""}::${l.stashType ?? ""}${l.isGift ? "::gift" : ""}`;
