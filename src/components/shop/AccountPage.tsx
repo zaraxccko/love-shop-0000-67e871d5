@@ -214,12 +214,13 @@ export const AccountPage = ({ onBack, onOpenCart, onOpenActiveOrder }: AccountPa
           </div>
         </section>
 
-        <a
-          href="https://t.me/love_supp_asia"
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => haptic("light")}
-          className="block rounded-2xl bg-card shadow-card p-4 active:scale-[0.99] transition-transform"
+        <button
+          type="button"
+          onClick={() => {
+            haptic("light");
+            openTelegramProfile("love_supp_asia");
+          }}
+          className="w-full text-left rounded-2xl bg-card shadow-card p-4 active:scale-[0.99] transition-transform"
         >
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-2xl gradient-primary text-primary-foreground flex items-center justify-center text-xl">
@@ -231,7 +232,7 @@ export const AccountPage = ({ onBack, onOpenCart, onOpenActiveOrder }: AccountPa
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
           </div>
-        </a>
+        </button>
 
         <section>
           <div className="flex items-center justify-between mb-2">
