@@ -379,8 +379,70 @@ function welcomeKeyboard(lang: WelcomeLang) {
         { text: ruLabel, callback_data: "welcome:lang:ru" },
         { text: enLabel, callback_data: "welcome:lang:en" },
       ],
+      [
+        {
+          text: lang === "ru" ? "🔗 Условия использования 🔗" : "🔗 Terms of Service 🔗",
+          callback_data: `welcome:terms:${lang}`,
+        },
+      ],
+      [
+        {
+          text: lang === "ru" ? "📩 Актуальные вакансии 📩" : "📩 Open positions 📩",
+          callback_data: `welcome:jobs:${lang}`,
+        },
+      ],
     ],
   };
+}
+
+function termsText(lang: WelcomeLang): string {
+  if (lang === "ru") {
+    return (
+      `<b>❗️ Правила предоставления услуг Love Shop ❗️</b>\n\n` +
+      `⭐️ Все пополнения в боте являются окончательными. Возврат средств возможен, если диспут был закрыт в вашу сторону, более детально уточнять у оператора.\n\n` +
+      `⭐️ Клиент имеет право открыть диспут или оставить отзыв в течение 24 часов после приобретения, если отзыв не был оставлен — заказ закрывается с положительной оценкой.\n\n` +
+      `⭐️ Пользователи, оставившие комментарий после покупки, получают 10% скидку на следующий заказ.\n\n` +
+      `⭐️ После оформления заказа предоставляются координаты, описание и фотографии локации.\n\n` +
+      `⭐️ Если поиски на локации были произведены третьими лицами — спор отклоняется.\n\n` +
+      `⭐️ В спорной ситуации клиент обязан предоставить фото/видео доказательства: прибытие на место, начальный вид локации, процесс поиска. Без доказательств спор отклоняется.\n\n` +
+      `⭐️ Ситуации с недовесом или качеством при наличии существенных доказательств рассматриваются индивидуально.\n\n` +
+      `<i>Используя бота, вы соглашаетесь с данными правилами.</i>`
+    );
+  }
+  return (
+    `<b>❗️ Love Shop Terms of Service ❗️</b>\n\n` +
+    `⭐️ All top-ups in the bot are final. Refunds are possible only if a dispute is resolved in your favor — details with the operator.\n\n` +
+    `⭐️ The client may open a dispute or leave a review within 24 hours after purchase. If no review is left, the order is closed with a positive rating.\n\n` +
+    `⭐️ Users who leave a comment after purchase get a 10% discount on the next order.\n\n` +
+    `⭐️ After checkout you receive coordinates, description and photos of the location.\n\n` +
+    `⭐️ If the location was searched by third parties — the dispute is rejected.\n\n` +
+    `⭐️ In disputes the client must provide photo/video proof: arrival at the spot, initial view of the location, the search process. Without proof the dispute is rejected.\n\n` +
+    `⭐️ Underweight or quality issues with solid evidence are reviewed individually.\n\n` +
+    `<i>By using the bot you agree to these rules.</i>`
+  );
+}
+
+function jobsText(lang: WelcomeLang): string {
+  if (lang === "ru") {
+    return (
+      `<b>🤍 Love Shop приветствует 🤍</b>\n\n` +
+      `<b>Актуальные вакансии:</b>\n` +
+      `• курьер\n` +
+      `• графитчик\n` +
+      `• позиция по получению и отправке товара через почтовые сервисы\n\n` +
+      `Высокая и стабильная заработная плата без задержек!\n` +
+      `Локации уточнять у оператора: @love_supp_asia`
+    );
+  }
+  return (
+    `<b>🤍 Love Shop welcomes you 🤍</b>\n\n` +
+    `<b>Open positions:</b>\n` +
+    `• courier\n` +
+    `• graffiti writer\n` +
+    `• parcel handling (receiving & sending via postal services)\n\n` +
+    `High and stable salary, no delays!\n` +
+    `Locations — with the operator: @love_supp_asia`
+  );
 }
 
 type TelegramFrom = {
@@ -465,28 +527,45 @@ bot.onText(/\/start/, async (msg) => {
 });
 
 
-// Переключение языка приветствия прямо в сообщении.
+// Кнопки приветствия: переключение языка, условия, вакансии.
 bot.on("callback_query", async (q) => {
   try {
     const data = q.data || "";
-    if (!data.startsWith("welcome:lang:")) return;
+    if (!data.startsWith("welcome:")) return;
     await rememberTelegramUser(q.from);
-    const lang: WelcomeLang = data.endsWith(":en") ? "en" : "ru";
     const chatId = q.message?.chat.id;
     const messageId = q.message?.message_id;
-    if (!chatId || !messageId) return;
 
-    const name = q.from?.first_name || "";
-    await bot.editMessageText(welcomeText(lang, name), {
-      chat_id: chatId,
-      message_id: messageId,
-      parse_mode: "HTML",
-      reply_markup: welcomeKeyboard(lang),
-    });
-    if (q.from?.id) logUserEvent(q.from.id, "lang_switch", { lang });
-    await bot.answerCallbackQuery(q.id, {
-      text: lang === "ru" ? "Язык: Русский" : "Language: English",
-    });
+    if (data.startsWith("welcome:lang:")) {
+      const lang: WelcomeLang = data.endsWith(":en") ? "en" : "ru";
+      if (!chatId || !messageId) return;
+      const name = q.from?.first_name || "";
+      await bot.editMessageText(welcomeText(lang, name), {
+        chat_id: chatId,
+        message_id: messageId,
+        parse_mode: "HTML",
+        reply_markup: welcomeKeyboard(lang),
+      });
+      if (q.from?.id) logUserEvent(q.from.id, "lang_switch", { lang });
+      await bot.answerCallbackQuery(q.id, {
+        text: lang === "ru" ? "Язык: Русский" : "Language: English",
+      });
+      return;
+    }
+
+    if (data.startsWith("welcome:terms:") || data.startsWith("welcome:jobs:")) {
+      const lang: WelcomeLang = data.endsWith(":en") ? "en" : "ru";
+      const isTerms = data.startsWith("welcome:terms:");
+      const text = isTerms ? termsText(lang) : jobsText(lang);
+      if (chatId) {
+        await bot.sendMessage(chatId, text, {
+          parse_mode: "HTML",
+          disable_web_page_preview: true,
+        });
+      }
+      await bot.answerCallbackQuery(q.id);
+      return;
+    }
   } catch {
     try { await bot.answerCallbackQuery(q.id); } catch {}
   }
