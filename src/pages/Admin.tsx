@@ -34,7 +34,6 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { AnalyticsTab } from "@/components/shop/admin/AnalyticsTab";
 import { BroadcastTab } from "@/components/shop/admin/BroadcastTab";
-import { ActivityTab } from "@/components/shop/admin/ActivityTab";
 import { ImageCropper } from "@/components/shop/admin/ImageCropper";
 import { PromoTab } from "@/components/shop/admin/PromoTab";
 import { toast } from "sonner";
@@ -220,23 +219,6 @@ const AdminPage = ({ onExit }: AdminPageProps) => {
     );
   }
 
-  if (selectedCountry === "__activity__") {
-    return (
-      <div className="min-h-screen max-w-md mx-auto bg-background px-5 pt-6 pb-10">
-        <header className="flex items-center gap-3 mb-6">
-          <button
-            onClick={() => setSelectedCountry(null)}
-            className="w-10 h-10 rounded-2xl bg-card shadow-card flex items-center justify-center active:scale-95"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <h1 className="font-display font-bold text-base flex-1 text-center">Активность</h1>
-          <span className="w-10" />
-        </header>
-        <ActivityTab />
-      </div>
-    );
-  }
 
   if (selectedCountry === "__locations__") {
     return <LocationsAdmin onBack={() => setSelectedCountry(null)} />;
@@ -311,16 +293,6 @@ const AdminPage = ({ onExit }: AdminPageProps) => {
               📢
             </div>
             <div className="font-bold text-sm">Рассылка</div>
-          </button>
-          <button
-            onClick={() => setSelectedCountry("__activity__")}
-            className="bg-card rounded-2xl p-4 shadow-card active:scale-[0.98] text-left col-span-2"
-          >
-            <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center text-xl mb-2">
-              📜
-            </div>
-            <div className="font-bold text-sm">Активность пользователей</div>
-            <div className="text-[11px] text-muted-foreground">Лента действий: каталог, корзина, заказы</div>
           </button>
           <button
             onClick={() => setSelectedCountry("__locations__")}

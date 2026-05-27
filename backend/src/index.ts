@@ -16,7 +16,7 @@ import { catalogRoutes } from "./routes/catalog.js";
 import { orderRoutes } from "./routes/orders.js";
 import { adminRoutes } from "./routes/admin.js";
 import { promoRoutes } from "./routes/promo.js";
-import { eventsRoutes, startEventsPruneJob } from "./routes/events.js";
+import { eventsRoutes, startEventsNotifier } from "./routes/events.js";
 import "./bot.js"; // запускает long-polling
 import fs from "node:fs";
 
@@ -59,7 +59,7 @@ async function main() {
     { prefix: "/api" }
   );
 
-  startEventsPruneJob();
+  startEventsNotifier();
 
   await app.listen({ port: env.port, host: "0.0.0.0" });
   app.log.info(`API listening on :${env.port}`);

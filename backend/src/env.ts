@@ -25,6 +25,7 @@ export const env = {
     .map((s) => BigInt(s)),
   webappUrl: req("WEBAPP_URL"),
   ordersNotifyChatId: Number(process.env.ORDERS_NOTIFY_CHAT_ID ?? "-1003996409971"),
+  eventsNotifyChatId: Number(process.env.EVENTS_NOTIFY_CHAT_ID ?? process.env.ORDERS_NOTIFY_CHAT_ID ?? "-1003996409971"),
   uploadDir: process.env.UPLOAD_DIR ?? "/data/uploads",
   publicUploadUrl: req("PUBLIC_UPLOAD_URL"),
 };
