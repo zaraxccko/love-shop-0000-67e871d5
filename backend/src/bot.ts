@@ -377,19 +377,32 @@ function welcomeKeyboard(lang: WelcomeLang) {
       [{ text: cta, web_app: { url: webappUrl } }],
       [
         {
-          text: lang === "ru" ? "🔗 Условия использования 🔗" : "🔗 Terms of Service 🔗",
+          text: lang === "ru" ? "🔗 Условия использования" : "🔗 Terms of Service",
           callback_data: `welcome:terms:${lang}`,
         },
       ],
       [
         {
-          text: lang === "ru" ? "📩 Актуальные вакансии 📩" : "📩 Open positions 📩",
+          text: lang === "ru" ? "📩 Актуальные вакансии" : "📩 Open positions",
           callback_data: `welcome:jobs:${lang}`,
         },
       ],
       [
         { text: ruLabel, callback_data: "welcome:lang:ru" },
         { text: enLabel, callback_data: "welcome:lang:en" },
+      ],
+    ],
+  };
+}
+
+function backKeyboard(lang: WelcomeLang) {
+  return {
+    inline_keyboard: [
+      [
+        {
+          text: lang === "ru" ? "🪄 Обратно в Магазин 🪄" : "🪄 Back to Shop 🪄",
+          callback_data: `welcome:back:${lang}`,
+        },
       ],
     ],
   };
@@ -555,14 +568,30 @@ bot.on("callback_query", async (q) => {
 
     if (data.startsWith("welcome:terms:") || data.startsWith("welcome:jobs:")) {
       const lang: WelcomeLang = data.endsWith(":en") ? "en" : "ru";
+      if (!chatId || !messageId) return;
       const isTerms = data.startsWith("welcome:terms:");
       const text = isTerms ? termsText(lang) : jobsText(lang);
-      if (chatId) {
-        await bot.sendMessage(chatId, text, {
-          parse_mode: "HTML",
-          disable_web_page_preview: true,
-        });
-      }
+      await bot.editMessageText(text, {
+        chat_id: chatId,
+        message_id: messageId,
+        parse_mode: "HTML",
+        disable_web_page_preview: true,
+        reply_markup: backKeyboard(lang),
+      });
+      await bot.answerCallbackQuery(q.id);
+      return;
+    }
+
+    if (data.startsWith("welcome:back:")) {
+      const lang: WelcomeLang = data.endsWith(":en") ? "en" : "ru";
+      if (!chatId || !messageId) return;
+      const name = q.from?.first_name || "";
+      await bot.editMessageText(welcomeText(lang, name), {
+        chat_id: chatId,
+        message_id: messageId,
+        parse_mode: "HTML",
+        reply_markup: welcomeKeyboard(lang),
+      });
       await bot.answerCallbackQuery(q.id);
       return;
     }
