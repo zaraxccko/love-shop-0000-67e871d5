@@ -45,6 +45,7 @@ const Index = () => {
   const loginWithInitData = useSession((s) => s.loginWithInitData);
   const refreshMe = useSession((s) => s.refreshMe);
   const banned = useSession((s) => s.banned);
+  const loadingSession = useSession((s) => s.loading);
   const hydrateCatalog = useCatalog((s) => s.hydrate);
   const hydrateAccount = useAccount((s) => s.hydrate);
 
@@ -147,6 +148,15 @@ const Index = () => {
     () => (category === "all" ? cityProducts : cityProducts.filter((p) => p.category === category)),
     [cityProducts, category]
   );
+
+  // Пока сессия определяется — не показываем магазин (чтобы забаненные не мелькали).
+  if (loadingSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
+      </div>
+    );
+  }
 
   // Banned users — простая заглушка 404, без какого-либо UI магазина.
   if (banned) {
