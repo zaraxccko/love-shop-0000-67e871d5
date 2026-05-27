@@ -45,6 +45,7 @@ const Index = () => {
   const loginWithInitData = useSession((s) => s.loginWithInitData);
   const refreshMe = useSession((s) => s.refreshMe);
   const banned = useSession((s) => s.banned);
+  const loadingSession = useSession((s) => s.loading);
   const hydrateCatalog = useCatalog((s) => s.hydrate);
   const hydrateAccount = useAccount((s) => s.hydrate);
 
