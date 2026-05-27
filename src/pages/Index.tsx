@@ -149,6 +149,15 @@ const Index = () => {
     [cityProducts, category]
   );
 
+  // Пока сессия определяется — не показываем магазин (чтобы забаненные не мелькали).
+  if (loadingSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
+      </div>
+    );
+  }
+
   // Banned users — простая заглушка 404, без какого-либо UI магазина.
   if (banned) {
     return (
