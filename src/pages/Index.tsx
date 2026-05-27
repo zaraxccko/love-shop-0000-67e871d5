@@ -154,7 +154,9 @@ const Index = () => {
       <div className="min-h-screen flex items-center justify-center px-6 bg-background">
         <div className="max-w-sm w-full text-center space-y-3">
           <div className="text-6xl font-display font-extrabold text-muted-foreground">404</div>
-          <h1 className="font-display font-bold text-xl">Сервис временно недоступен</h1>
+          <h1 className="font-display font-bold text-xl">
+            {lang === "en" ? "Service temporarily unavailable" : "Сервис временно недоступен"}
+          </h1>
         </div>
       </div>
     );
