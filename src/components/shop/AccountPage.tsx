@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { useAccount, type OrderRecord } from "@/store/account";
 import { useCart, RESERVATION_MS } from "@/store/cart";
 import { useI18n } from "@/lib/i18n";
-import { useTelegram, haptic } from "@/lib/telegram";
+import { useTelegram, haptic, openTelegramProfile } from "@/lib/telegram";
 import { useCatalog } from "@/store/catalog";
 import { formatTHB } from "@/lib/format";
 import { loc } from "@/lib/loc";
