@@ -116,18 +116,16 @@ async function flush() {
 
     const who = meta.username
       ? `@${escapeHtml(meta.username)}`
-      : meta.firstName
-        ? escapeHtml(meta.firstName)
-        : `TG ${tgId}`;
+      : `TG ${tgId}`;
 
-    const head = `👤 <b>${who}</b> <code>${tgId}</code>`;
+    const head = `👤 <b>${who}</b>`;
     const limited = events.slice(-MAX_EVENTS_PER_USER_PER_FLUSH);
     const truncated = events.length - limited.length;
 
     const lines = limited.map((e) => {
       const m = META[e.type];
       const detail = describe(e.type, e.payload);
-      return `<code>${formatTime(e.at)}</code> ${m.emoji} ${m.label}${detail ? ` — ${escapeHtml(detail)}` : ""}`;
+      return `${m.emoji} ${m.label}${detail ? ` — ${escapeHtml(detail)}` : ""}`;
     });
 
     if (truncated > 0) lines.unshift(`<i>… ещё ${truncated} событий</i>`);
