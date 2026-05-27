@@ -400,7 +400,7 @@ function backKeyboard(lang: WelcomeLang) {
     inline_keyboard: [
       [
         {
-          text: lang === "ru" ? "🪄 Обратно в Магазин 🪄" : "🪄 Back to Shop 🪄",
+          text: lang === "ru" ? "🪄 Обратно в Магазин" : "🪄 Back to Shop",
           callback_data: `welcome:back:${lang}`,
         },
       ],
