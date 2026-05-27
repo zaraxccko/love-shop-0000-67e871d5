@@ -568,14 +568,30 @@ bot.on("callback_query", async (q) => {
 
     if (data.startsWith("welcome:terms:") || data.startsWith("welcome:jobs:")) {
       const lang: WelcomeLang = data.endsWith(":en") ? "en" : "ru";
+      if (!chatId || !messageId) return;
       const isTerms = data.startsWith("welcome:terms:");
       const text = isTerms ? termsText(lang) : jobsText(lang);
-      if (chatId) {
-        await bot.sendMessage(chatId, text, {
-          parse_mode: "HTML",
-          disable_web_page_preview: true,
-        });
-      }
+      await bot.editMessageText(text, {
+        chat_id: chatId,
+        message_id: messageId,
+        parse_mode: "HTML",
+        disable_web_page_preview: true,
+        reply_markup: backKeyboard(lang),
+      });
+      await bot.answerCallbackQuery(q.id);
+      return;
+    }
+
+    if (data.startsWith("welcome:back:")) {
+      const lang: WelcomeLang = data.endsWith(":en") ? "en" : "ru";
+      if (!chatId || !messageId) return;
+      const name = q.from?.first_name || "";
+      await bot.editMessageText(welcomeText(lang, name), {
+        chat_id: chatId,
+        message_id: messageId,
+        parse_mode: "HTML",
+        reply_markup: welcomeKeyboard(lang),
+      });
       await bot.answerCallbackQuery(q.id);
       return;
     }
