@@ -59,7 +59,7 @@ async function main() {
     { prefix: "/api" }
   );
 
-  startEventsPruneJob();
+  startEventsNotifier();
 
   await app.listen({ port: env.port, host: "0.0.0.0" });
   app.log.info(`API listening on :${env.port}`);
