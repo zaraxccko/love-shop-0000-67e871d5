@@ -170,9 +170,13 @@ export const BroadcastTab = () => {
       setImage(null);
       setBtnText("");
       setBtnUrl("");
-    } catch (e) {
+    } catch (e: any) {
       haptic("error");
-      toast.error(`Не удалось отправить: ${e instanceof Error ? e.message : "ошибка сети"}`);
+      const body = e?.body;
+      const detail =
+        (typeof body === "object" && body && (body.error?.formErrors?.[0] || body.error?.fieldErrors?.image?.[0] || (typeof body.error === "string" ? body.error : null) || body.message)) ||
+        (e instanceof Error ? e.message : "ошибка сети");
+      toast.error(`Не удалось отправить: ${detail}`);
     } finally {
       setSending(false);
     }
