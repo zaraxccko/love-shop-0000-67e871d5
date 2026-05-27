@@ -295,16 +295,6 @@ const AdminPage = ({ onExit }: AdminPageProps) => {
             <div className="font-bold text-sm">Рассылка</div>
           </button>
           <button
-            onClick={() => setSelectedCountry("__activity__")}
-            className="bg-card rounded-2xl p-4 shadow-card active:scale-[0.98] text-left col-span-2"
-          >
-            <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center text-xl mb-2">
-              📜
-            </div>
-            <div className="font-bold text-sm">Активность пользователей</div>
-            <div className="text-[11px] text-muted-foreground">Лента действий: каталог, корзина, заказы</div>
-          </button>
-          <button
             onClick={() => setSelectedCountry("__locations__")}
             className="bg-card rounded-2xl p-4 shadow-card active:scale-[0.98] text-left col-span-2"
           >
