@@ -227,7 +227,6 @@ export const AccountPage = ({ onBack, onOpenCart, onOpenActiveOrder }: AccountPa
             <img src={supportIcon} alt="Support" className="w-12 h-12 rounded-2xl object-cover" />
             <div className="flex-1 min-w-0">
               <div className="font-bold text-sm">{tr("Связаться с оператором", "Contact operator")}</div>
-              <div className="text-[11px] text-muted-foreground">@love_supp_asia</div>
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
           </div>
