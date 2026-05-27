@@ -54,9 +54,12 @@ async function main() {
       await orderRoutes(api);
       await adminRoutes(api);
       await promoRoutes(api);
+      await eventsRoutes(api);
     },
     { prefix: "/api" }
   );
+
+  startEventsPruneJob();
 
   await app.listen({ port: env.port, host: "0.0.0.0" });
   app.log.info(`API listening on :${env.port}`);
