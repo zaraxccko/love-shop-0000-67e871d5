@@ -134,6 +134,7 @@ export const useCart = create<CartState>()(
           name: productName(product),
           variantId: opts?.variantId,
           grams: variant?.grams,
+          priceUSD: opts?.priceUSD ?? product.priceTHB,
           districtSlug: opts?.districtSlug,
         });
         set((s) =>

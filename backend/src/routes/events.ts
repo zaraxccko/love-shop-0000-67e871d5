@@ -61,18 +61,20 @@ function describe(type: UserEventType, payload?: Record<string, unknown>): strin
   if (!payload) return "";
   const p = payload as Record<string, any>;
   switch (type) {
-    case "cart_add":
-      return [p.name, p.grams ? `${p.grams}г` : null].filter(Boolean).join(" · ");
+    case "cart_add": {
+      const parts: string[] = [];
+      if (p.name) parts.push(String(p.name));
+      if (p.grams) parts.push(`${p.grams}г`);
+      if (typeof p.priceUSD === "number") parts.push(`$${p.priceUSD}`);
+      return parts.join(" · ");
+    }
     case "cart_remove":
     case "product_view":
       return p.name ?? "";
     case "catalog_open":
       return p.citySlug ? `город: ${p.citySlug}` : "";
     case "checkout_open":
-      return [
-        p.itemsCount ? `позиций: ${p.itemsCount}` : null,
-        p.delivery ? "🚚 доставка" : null,
-      ].filter(Boolean).join(" · ");
+      return typeof p.totalUSD === "number" ? `$${p.totalUSD}` : "";
     case "lang_switch":
       return p.lang ? `→ ${p.lang}` : "";
     case "bot_blocked":
@@ -82,8 +84,8 @@ function describe(type: UserEventType, payload?: Record<string, unknown>): strin
   }
 }
 
-function formatTime(at: number): string {
-  return new Date(at).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+function formatTime(_at: number): string {
+  return "";
 }
 
 async function flush() {
@@ -114,18 +116,16 @@ async function flush() {
 
     const who = meta.username
       ? `@${escapeHtml(meta.username)}`
-      : meta.firstName
-        ? escapeHtml(meta.firstName)
-        : `TG ${tgId}`;
+      : `TG ${tgId}`;
 
-    const head = `👤 <b>${who}</b> <code>${tgId}</code>`;
+    const head = `👤 <b>${who}</b>`;
     const limited = events.slice(-MAX_EVENTS_PER_USER_PER_FLUSH);
     const truncated = events.length - limited.length;
 
     const lines = limited.map((e) => {
       const m = META[e.type];
       const detail = describe(e.type, e.payload);
-      return `<code>${formatTime(e.at)}</code> ${m.emoji} ${m.label}${detail ? ` — ${escapeHtml(detail)}` : ""}`;
+      return `${m.emoji} ${m.label}${detail ? ` — ${escapeHtml(detail)}` : ""}`;
     });
 
     if (truncated > 0) lines.unshift(`<i>… ещё ${truncated} событий</i>`);
