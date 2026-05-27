@@ -19,6 +19,7 @@ import { useCatalog } from "@/store/catalog";
 import { formatTHB } from "@/lib/format";
 import { loc } from "@/lib/loc";
 import { STASH_TYPES, type StashType } from "@/types/shop";
+import supportIcon from "@/assets/support-icon.png";
 
 interface AccountPageProps {
   onBack: () => void;
