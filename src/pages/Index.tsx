@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import type { Product } from "@/types/shop";
 import AdminPage from "./Admin";
 import ModeratorPage from "./Moderator";
+import { Events } from "@/lib/api";
 
 type Screen = "shop" | "account" | "order-payment";
 type OrderPaymentOrigin = "shop" | "account";
