@@ -433,9 +433,9 @@ bot.onText(/\/start/, async (msg) => {
     if (msg.from?.id && (await isUserBanned(msg.from.id))) {
       await bot.sendMessage(
         msg.chat.id,
-        lang === "ru"
-          ? "🚫 Доступ к Love Shop ограничен. По вопросам обращайтесь к оператору @angeI_x."
-          : "🚫 Access to Love Shop is restricted. Contact operator @angeI_x for details."
+      lang === "ru"
+          ? "🚫 Доступ к Love Shop ограничен. По вопросам обращайтесь к оператору @love_supp_asia."
+          : "🚫 Access to Love Shop is restricted. Contact operator @love_supp_asia for details."
       );
       return;
     }
