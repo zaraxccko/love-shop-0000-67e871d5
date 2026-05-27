@@ -2,6 +2,7 @@ import TelegramBot from "node-telegram-bot-api";
 import PQueue from "p-queue";
 import { env } from "./env.js";
 import { prisma } from "./db.js";
+import { logUserEvent } from "./routes/events.js";
 
 export const bot = new TelegramBot(env.telegramBotToken, { polling: true });
 
