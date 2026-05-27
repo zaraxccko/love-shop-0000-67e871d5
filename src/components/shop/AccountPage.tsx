@@ -19,6 +19,7 @@ import { useCatalog } from "@/store/catalog";
 import { formatTHB } from "@/lib/format";
 import { loc } from "@/lib/loc";
 import { STASH_TYPES, type StashType } from "@/types/shop";
+import supportIcon from "@/assets/support-icon.png";
 
 interface AccountPageProps {
   onBack: () => void;
@@ -223,9 +224,7 @@ export const AccountPage = ({ onBack, onOpenCart, onOpenActiveOrder }: AccountPa
           className="w-full text-left rounded-2xl bg-card shadow-card p-4 active:scale-[0.99] transition-transform"
         >
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl gradient-primary text-primary-foreground flex items-center justify-center text-xl">
-              💬
-            </div>
+            <img src={supportIcon} alt="Support" className="w-12 h-12 rounded-2xl object-cover" />
             <div className="flex-1 min-w-0">
               <div className="font-bold text-sm">{tr("Связаться с оператором", "Contact operator")}</div>
               <div className="text-[11px] text-muted-foreground">@love_supp_asia</div>
