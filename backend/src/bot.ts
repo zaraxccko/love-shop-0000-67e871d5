@@ -227,10 +227,13 @@ export async function broadcast(opts: {
           // Помечаем юзера, чтобы исключить из следующих рассылок и подсветить в админке.
           if (kind === "blocked" || kind === "deactivated" || kind === "not_found") {
             try {
-              await prisma.user.updateMany({
-                where: { tgId: BigInt(chatId) },
+              const upd = await prisma.user.updateMany({
+                where: { tgId: BigInt(chatId), botBlocked: false },
                 data: { botBlocked: true },
               });
+              if (upd.count > 0 && (kind === "blocked" || kind === "deactivated")) {
+                logUserEvent(chatId, "bot_blocked", { reason: kind }).catch(() => {});
+              }
             } catch {}
           }
         } finally {
