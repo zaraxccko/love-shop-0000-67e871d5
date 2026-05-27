@@ -87,6 +87,7 @@ const Index = () => {
     Events.log("checkout_open", {
       itemsCount: cartLines.length,
       delivery: cartDelivery,
+      totalUSD: useCart.getState().totalTHB(),
     });
     setCartOpen(false);
     setOrderPaymentOrigin("shop");
