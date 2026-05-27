@@ -322,19 +322,19 @@ function welcomeText(lang: WelcomeLang, rawName: string): string {
       `\n` +
       `Закрытое сообщество авторских сладостей в Азии 🧸\n` +
       `\n` +
-      `<b>География:</b>\n` +
+      `География:\n` +
       `🇹🇭 Таиланд · 🇮🇩 Бали · 🇻🇳 Вьетнам · 🇲🇾 КЛ · 🇦🇪 ОАЭ\n` +
       `\n` +
-      `<b>Что внутри:</b>\n` +
+      `Что внутри:\n` +
       `• Только лучшие сорта и чистые кристаллы\n` +
       `• Качественная упаковка кладов\n` +
       `• Доставка в течении 40-60 минут на заказы от 3 гр\n` +
       `• Оплата в крипте: наша безопасность — ваша конфиденциальность\n` +
-      `• Первый заказ — 15% 🎟 <code>SUMMER10</code> 🎟\n` +
+      `• Первый заказ — 15% 🎟 SUMMER10 🎟\n` +
       `• Акция 2g - 1 free в этом же заказе активна 🍭\n` +
-      `• Оператор: @angeI_x\n` +
+      `• Оператор: @love_supp_asia\n` +
       `\n` +
-      `<b>🧊 Сделай свой трип незабываемым 🧊</b>`
+      `🧊 Сделай свой трип незабываемым 🧊`
     );
   }
 
@@ -343,19 +343,19 @@ function welcomeText(lang: WelcomeLang, rawName: string): string {
     `\n` +
     `Private community of author sweets in Asia 🧸\n` +
     `\n` +
-    `<b>Geography:</b>\n` +
+    `Geography:\n` +
     `🇹🇭 Thailand · 🇮🇩 Bali · 🇻🇳 Vietnam · 🇲🇾 KL · 🇦🇪 UAE\n` +
     `\n` +
-    `<b>What's inside:</b>\n` +
+    `What's inside:\n` +
     `• Only the best varieties and pure crystals\n` +
     `• Quality packaging of stashes\n` +
     `• Delivery within 40-60 minutes for orders from 3g\n` +
     `• Payment in crypto: our safety — your confidentiality\n` +
-    `• First order — 15% off 🎟 <code>SUMMER10</code> 🎟\n` +
+    `• First order — 15% off 🎟 SUMMER10 🎟\n` +
     `• Promo 2g - 1 free in the same order 🍭\n` +
-    `• Operator: @angeI_x\n` +
+    `• Operator: @love_supp_asia\n` +
     `\n` +
-    `<b>🧊 Make your trip unforgettable 🧊</b>`
+    `🧊 Make your trip unforgettable 🧊`
   );
 }
 
