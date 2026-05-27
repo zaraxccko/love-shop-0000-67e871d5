@@ -84,10 +84,29 @@ const Index = () => {
       toast.error(lang === "en" ? "Please enter delivery address" : "Укажите адрес доставки");
       return;
     }
+    Events.log("checkout_open", {
+      itemsCount: cartLines.length,
+      delivery: cartDelivery,
+    });
     setCartOpen(false);
     setOrderPaymentOrigin("shop");
     setScreen("order-payment");
   };
+
+  // Лог открытия каталога — раз при выборе города (и при смене города).
+  useEffect(() => {
+    if (city) Events.log("catalog_open", { citySlug: city });
+  }, [city]);
+
+  // Лог просмотра товара.
+  useEffect(() => {
+    if (openProduct) {
+      Events.log("product_view", {
+        productId: openProduct.id,
+        name: typeof openProduct.name === "string" ? openProduct.name : openProduct.name?.ru ?? openProduct.name?.en,
+      });
+    }
+  }, [openProduct]);
 
   const cityInfo = city ? findCity(city) : null;
 
