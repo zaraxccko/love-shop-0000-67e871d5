@@ -26,24 +26,8 @@ model User {
 
   deposits    Deposit[]
   orders      Order[]
-  events      UserEvent[]
 
   @@map("users")
-}
-
-model UserEvent {
-  id        String   @id @default(cuid())
-  userTgId  BigInt   @map("user_tg_id")
-  type      String
-  payload   Json?
-  createdAt DateTime @default(now()) @map("created_at")
-
-  user      User     @relation(fields: [userTgId], references: [tgId], onDelete: Cascade)
-
-  @@index([userTgId, createdAt])
-  @@index([type, createdAt])
-  @@index([createdAt])
-  @@map("user_events")
 }
 
 model Product {
