@@ -219,23 +219,6 @@ const AdminPage = ({ onExit }: AdminPageProps) => {
     );
   }
 
-  if (selectedCountry === "__activity__") {
-    return (
-      <div className="min-h-screen max-w-md mx-auto bg-background px-5 pt-6 pb-10">
-        <header className="flex items-center gap-3 mb-6">
-          <button
-            onClick={() => setSelectedCountry(null)}
-            className="w-10 h-10 rounded-2xl bg-card shadow-card flex items-center justify-center active:scale-95"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <h1 className="font-display font-bold text-base flex-1 text-center">Активность</h1>
-          <span className="w-10" />
-        </header>
-        <ActivityTab />
-      </div>
-    );
-  }
 
   if (selectedCountry === "__locations__") {
     return <LocationsAdmin onBack={() => setSelectedCountry(null)} />;
