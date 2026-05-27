@@ -90,10 +90,21 @@ export const BroadcastTab = () => {
 
   const onPickImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
+    e.target.value = ""; // позволяет повторно выбрать тот же файл
     if (!f) return;
-    const url = await fileToDataUrl(f);
-    setImage(url);
+    if (!f.type.startsWith("image/")) {
+      toast.error("Можно загрузить только изображение");
+      return;
+    }
+    try {
+      const url = await compressImage(f);
+      setImage(url);
+    } catch (err) {
+      console.error("[broadcast] image compress failed", err);
+      toast.error("Не удалось обработать картинку");
+    }
   };
+
 
   const send = async () => {
     if (!text.trim()) {
