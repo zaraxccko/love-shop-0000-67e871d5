@@ -369,16 +369,12 @@ function welcomeText(lang: WelcomeLang, rawName: string): string {
 function welcomeKeyboard(lang: WelcomeLang) {
   const cta = "🛍 Shop Now 🛍";
   const webappUrl = `${env.webappUrl}${env.webappUrl.includes("?") ? "&" : "?"}v=${Date.now()}`;
-  // вторая строка — переключатель языка (активный отмечен •)
+  // переключатель языка (активный отмечен •) — последняя строка
   const ruLabel = lang === "ru" ? "• Русский" : "Русский";
   const enLabel = lang === "en" ? "• English" : "English";
   return {
     inline_keyboard: [
       [{ text: cta, web_app: { url: webappUrl } }],
-      [
-        { text: ruLabel, callback_data: "welcome:lang:ru" },
-        { text: enLabel, callback_data: "welcome:lang:en" },
-      ],
       [
         {
           text: lang === "ru" ? "🔗 Условия использования 🔗" : "🔗 Terms of Service 🔗",
@@ -390,6 +386,10 @@ function welcomeKeyboard(lang: WelcomeLang) {
           text: lang === "ru" ? "📩 Актуальные вакансии 📩" : "📩 Open positions 📩",
           callback_data: `welcome:jobs:${lang}`,
         },
+      ],
+      [
+        { text: ruLabel, callback_data: "welcome:lang:ru" },
+        { text: enLabel, callback_data: "welcome:lang:en" },
       ],
     ],
   };
